@@ -22,9 +22,41 @@ jobs:
       - checkout
       - run: npm install
       - run: npm test
+  deploy:
+    docker:
+      - image: circleci/node:10.15
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Pull Docker image from Docker Hub
+          command: docker pull olukotunts/app:$CIRCLE_SHA1
+      - run:
+          name: Tag Docker image
+          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
+      - run:
+          name: Log in to Heroku Container Registry
+          command: docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
+      - run:
+          name: Push Docker image to Heroku
+          command: docker push registry.heroku.com/name-button/web
+      - run:
+          name: Install Heroku CLI
+          command: curl https://cli-assets.heroku.com/install.sh | sh
+      - run:
+          name: Deploy Docker image to Heroku
+          command: heroku container:release --app name-button web
 workflows:
   version: 2
-  build_and_test:
+  build_test_and_deploy:
     jobs:
       - test
       - build
+      - deploy:
+          requires:
+            - test
+            - build
+            
