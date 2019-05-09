@@ -46,7 +46,7 @@ jobs:
           command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
       - run:
           name: Log in to Heroku Container Registry
-          command: docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
+          command: docker login --username=_ --password-stdin=$HEROKU_API_KEY registry.heroku.com
       - run:
           name: Push Docker image to Heroku
           command: docker push registry.heroku.com/name-button/web
