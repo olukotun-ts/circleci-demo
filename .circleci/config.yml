@@ -1,8 +1,13 @@
 version: 2.1
-jobs:
-  build:
+executors:
+  my-executor:
     docker:
       - image: circleci/node:10.15
+jobs:
+  build:
+    # docker:
+    #   - image: circleci/node:10.15
+    executor: my-executor
     steps:
       - checkout
       - setup_remote_docker
@@ -16,15 +21,17 @@ jobs:
           name: Push Docker image to Docker Hub
           command: docker push olukotunts/app:$CIRCLE_SHA1
   test:
-    docker:
-      - image: circleci/node:10.15
+    # docker:
+    #   - image: circleci/node:10.15
+    executor: my-executor    
     steps:
       - checkout
       - run: npm install
       - run: npm test
   deploy:
-    docker:
-      - image: circleci/node:10.15
+    # docker:
+    #   - image: circleci/node:10.15
+    executor: my-executor
     steps:
       - checkout
       - setup_remote_docker
