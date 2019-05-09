@@ -57,7 +57,7 @@ jobs:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button web
 workflows:
-  version: 2
+  version: 2.1
   build_test_and_deploy:
     jobs:
       - test
