@@ -1,10 +1,15 @@
 const chance = require('chance').Chance();
+const CircleData = require('./CircleData');
 
 module.exports = {
     data() {
         return {
             name: 'Click here'
         }
+    },
+
+    components: {
+        'circle-data': CircleData
     },
 
     methods: {
@@ -14,8 +19,13 @@ module.exports = {
     },
 
     template: `
-        <label> Your new id:
-            <button id="btn-main" v-on:click="generateName">{{ name }}</button>
-        </label>
+        <div>
+            <div>
+                <label> Your new id:
+                    <button id="btn-main" v-on:click="generateName">{{ name }}</button>
+                </label>
+            </div>
+            <circle-data></circle-data>
+        </div>
     `
 };
