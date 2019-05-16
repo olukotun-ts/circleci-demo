@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/olukotun-ts/name-button#readme",
   "dependencies": {
+    "axios": "^0.18.0",
     "chance": "^1.0.18",
     "express": "^4.16.4",
     "vue": "^2.5.22"
@@ -28,7 +29,7 @@
     "@vue/test-utils": "^1.0.0-beta.28",
     "browserify": "^16.2.3",
     "jest": "^24.0.0",
-    "nodemon": "^1.18.9",
+    "nodemon": "^1.19.0",
     "vue-template-compiler": "^2.5.22"
   }
 }
