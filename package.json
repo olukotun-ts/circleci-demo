@@ -2,8 +2,11 @@
   "name": "name-button",
   "version": "1.0.0",
   "description": "name-button",
-  "main": "main.js",
+  "main": "server.js",
   "scripts": {
+    "build": "browserify main.js > public/bundle.js",
+    "dev": "nodemon --ignore ./public --exec npm start",
+    "start": "npm run build && node server.js",
     "test": "jest"
   },
   "repository": {
