@@ -38,7 +38,27 @@ app.get('/metadata', (req, res) => {
         console.log(error);
 
         res.status(500).send(error);
+    });
+});
+
+app.get('/weather', (req, res) => {
+    axios.get('api.openweathermap.org/data/2.5/weather', {
+        params: {
+            APPID: process.env.WEATHER_API_TOKEN,
+            q: 'London,uk'
+        }
     })
+    .then(({ data }) => {
+        console.log('>>> weather data:', data);
+        res.send(data);
+    })
+    .catch(error => {
+        console.log('Error: GET /weather');
+        console.log(error);
+        
+        res.status(500).send(error);
+    });
+
 })
 
 app.listen(port, () => console.log(`Listening on port ${port}.`));
