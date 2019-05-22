@@ -4,7 +4,6 @@ module.exports = {
     data() {
         return {
             metadata: null,
-            name: 'Click here'
         }
     },
 
