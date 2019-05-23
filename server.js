@@ -34,29 +34,37 @@ app.get('/metadata', (req, res) => {
         }});
     })
     .catch(error => {
-        console.log('Error: GET /metadata');
-        console.log(error);
+        const message = 'Error: GET /metadata';
+        console.log(message, '\n', error);
 
-        res.status(500).send(error);
+        res.status(500).send(message);
     });
 });
 
 app.get('/weather', (req, res) => {
-    axios.get('api.openweathermap.org/data/2.5/weather', {
+    axios.get('https://api.openweathermap.org/data/2.5/group', {
         params: {
             APPID: process.env.WEATHER_API_TOKEN,
-            q: 'London,uk'
+            id: '4930956,5419384,5391959',  // OpenWeatherMap city ids for Boston, Denver, and SF.
+            units: 'imperial'
         }
     })
     .then(({ data }) => {
-        console.log('>>> weather data:', data);
-        res.send(data);
+        const response = data.list.map(city => {
+            return {
+                name: city.name,
+                temp: city.main.temp,
+                description: city.weather[0].description
+            }
+        });
+        
+        res.send(response);
     })
     .catch(error => {
-        console.log('Error: GET /weather');
-        console.log(error);
+        const message = 'Error: GET /weather';
+        console.log(message, '\n', error);
         
-        res.status(500).send(error);
+        res.status(500).send(message);
     });
 
 })
