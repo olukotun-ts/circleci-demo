@@ -39,8 +39,10 @@ module.exports = {
                 </label>
             </div>
             <circle-data></circle-data>
-            <div>
-                {{ weather }}
+            <div class="container" v-for="city in weather">
+                <div>{{ city.temp }}</div>
+                <div class="h2">{{ city.name }}</div>
+                <div class="text-muted">{{ city.description }}</div>
             </div>
         </div>
     `
