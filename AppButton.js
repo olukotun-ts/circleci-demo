@@ -1,21 +1,34 @@
+const axios = require('axios');
 const chance = require('chance').Chance();
 const CircleData = require('./CircleData');
 
 module.exports = {
     data() {
         return {
-            name: 'Click here'
+            name: 'Click here',
+            weather: null
         }
     },
 
-    components: {
-        'circle-data': CircleData
+    mounted() {
+        this.getWeather();
     },
 
     methods: {
         generateName() {
             this.name = chance.name({ suffix: true });
+        },
+        
+        getWeather() {
+            axios.get('/weather')
+            .then(({ data }) => {
+                this.weather = data;
+            })
         }
+    },
+
+    components: {
+        'circle-data': CircleData
     },
 
     template: `
@@ -26,6 +39,9 @@ module.exports = {
                 </label>
             </div>
             <circle-data></circle-data>
+            <div>
+                {{ weather }}
+            </div>
         </div>
     `
 };
