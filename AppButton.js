@@ -33,17 +33,20 @@ module.exports = {
 
     template: `
         <div>
-            <div>
+            <div class="d-none">
                 <label> Your new id:
                     <button id="btn-main" v-on:click="generateName">{{ name }}</button>
                 </label>
             </div>
-            <circle-data></circle-data>
-            <div class="container" v-for="city in weather">
-                <div>{{ city.temp }}</div>
-                <div class="h2">{{ city.name }}</div>
-                <div class="text-muted">{{ city.description }}</div>
+            <h1 class="text-center">Weather Dashboard</h1>
+            <div class="container-fluid text-center p-4" v-for="city in weather">
+                <button type=button class="btn btn-info container-fluid p-3">
+                    <div>{{ city.temp }}</div>
+                    <div class="font-weight-bolder h2">{{ city.name }}</div>
+                    <div class="font-italic font-weight-lighter">{{ city.description }}</div>
+                </button>
             </div>
+            <circle-data></circle-data>
         </div>
     `
 };
