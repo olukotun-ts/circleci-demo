@@ -53,11 +53,11 @@ app.get('/weather', (req, res) => {
         const response = data.list.map(city => {
             return {
                 name: city.name,
-                temp: city.main.temp,
+                temp: Math.round(city.main.temp),
                 description: city.weather[0].description
             }
         });
-        
+
         res.send(response);
     })
     .catch(error => {
