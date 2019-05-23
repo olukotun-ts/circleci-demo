@@ -3,7 +3,7 @@ const axios = require('axios');
 module.exports = {
     data() {
         return {
-            metadata: null,
+            metadata: null
         }
     },
 
