@@ -89,7 +89,8 @@ workflows:
           # filters:
           #   branches:
           #     only: master
+      - promote-to-production:
+          type: approval  
+          requires: deploy-staging
       - deploy-production:
-          type: approval
-          requires:
-            - deploy-staging
+          requires: promote-to-production
