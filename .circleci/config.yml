@@ -46,7 +46,7 @@ jobs:
           command: heroku container:login
       - run:
           name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button-staging/web
+          command: docker push registry.heroku.com/name-button/web
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button-staging web
