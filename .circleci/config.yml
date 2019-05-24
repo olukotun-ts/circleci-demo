@@ -92,8 +92,4 @@ workflows:
       - deploy-production:
           type: approval
           requires:
-            - test
-            - build
-          filters:
-            branches:
-              only: master
+            - deploy-staging
