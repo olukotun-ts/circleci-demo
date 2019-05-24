@@ -71,6 +71,7 @@ app.get('/weather', (req, res) => {
         console.log(message, '\n', error);
 
         console.log('>>> appid:', process.env.WEATHER_API_TOKEN);
+        console.log('>>> cciid:', process.env.CIRCLE_API_TOKEN);
         
         res.status(500).send(message);
     });
