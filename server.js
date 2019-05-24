@@ -69,6 +69,8 @@ app.get('/weather', (req, res) => {
     .catch(error => {
         const message = 'Error: GET /weather';
         console.log(message, '\n', error);
+
+        console.log('>>> appid:', process.env.WEATHER_API_TOKEN);
         
         res.status(500).send(message);
     });
