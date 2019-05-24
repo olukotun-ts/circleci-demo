@@ -27,7 +27,7 @@ module.exports = {
 
     template: `
         <div>
-            <ul> 
+            <ul>Metadata:
                 <li v-for="(value, key) in metadata">
                     {{ key }}: {{ value }}
                 </li>
