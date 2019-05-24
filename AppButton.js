@@ -1,6 +1,5 @@
 const axios = require('axios');
 const chance = require('chance').Chance();
-const CircleData = require('./CircleData');
 
 module.exports = {
     data() {
@@ -27,10 +26,6 @@ module.exports = {
         }
     },
 
-    components: {
-        'circle-data': CircleData
-    },
-
     template: `
         <div>
             <div class="d-none">
@@ -46,7 +41,6 @@ module.exports = {
                     <div class="font-italic font-weight-lighter">{{ city.description }}</div>
                 </button>
             </div>
-            <circle-data></circle-data>
         </div>
     `
 };
