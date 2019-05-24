@@ -37,7 +37,7 @@ jobs:
           command: docker pull olukotunts/app:$CIRCLE_SHA1
       - run:
           name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
+          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
       - run:
           name: Install Heroku CLI
           command: curl https://cli-assets.heroku.com/install.sh | sh
