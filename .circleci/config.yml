@@ -24,7 +24,33 @@ jobs:
       - checkout
       - run: npm install
       - run: npm test
-  deploy:
+  deploy-staging:
+    executor: my-executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Pull Docker image from Docker Hub
+          command: docker pull olukotunts/app:$CIRCLE_SHA1
+      - run:
+          name: Tag Docker image
+          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
+      - run:
+          name: Install Heroku CLI
+          command: curl https://cli-assets.heroku.com/install.sh | sh
+      - run:
+          name: Log in to Heroku Container Registry
+          command: heroku container:login
+      - run:
+          name: Push Docker image to Heroku
+          command: docker push registry.heroku.com/name-button-staging/web
+      - run:
+          name: Deploy Docker image to Heroku
+          command: heroku container:release --app name-button-staging web
+  deploy-production:
     executor: my-executor
     steps:
       - checkout
@@ -56,7 +82,15 @@ workflows:
     jobs:
       - test
       - build
-      - deploy:
+      - deploy-staging:
+          requires:
+            - test
+            - build
+          filters:
+            branches:
+              only: master
+      - deploy-production:
+          type: approval
           requires:
             - test
             - build

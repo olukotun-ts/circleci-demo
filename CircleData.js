@@ -3,8 +3,7 @@ const axios = require('axios');
 module.exports = {
     data() {
         return {
-            metadata: null,
-            name: 'Click here'
+            metadata: null
         }
     },
 
@@ -28,7 +27,7 @@ module.exports = {
 
     template: `
         <div>
-            <ul> 
+            <ul>Metadata:
                 <li v-for="(value, key) in metadata">
                     {{ key }}: {{ value }}
                 </li>

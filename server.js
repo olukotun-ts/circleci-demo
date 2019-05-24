@@ -34,11 +34,45 @@ app.get('/metadata', (req, res) => {
         }});
     })
     .catch(error => {
-        console.log('Error: GET /metadata');
-        console.log(error);
+        const message = 'Error: GET /metadata';
+        console.log(message, '\n', error);
 
-        res.status(500).send(error);
+        res.status(500).send(message);
+    });
+});
+
+app.get('/weather', (req, res) => {
+    const cities = [
+        4930956,    // Boston
+        5419384,    // Denver
+        5391959     // SanFrancisco
+    ];
+
+    axios.get('https://api.openweathermap.org/data/2.5/group', {
+        params: {
+            APPID: process.env.WEATHER_API_TOKEN,
+            id: cities.toString(),
+            units: 'imperial'
+        }
     })
+    .then(({ data }) => {
+        const response = data.list.map(city => {
+            return {
+                name: city.name,
+                temp: Math.round(city.main.temp),
+                description: city.weather[0].description
+            }
+        });
+
+        res.send(response);
+    })
+    .catch(error => {
+        const message = 'Error: GET /weather';
+        console.log(message, '\n', error);
+        
+        res.status(500).send(message);
+    });
+
 })
 
 app.listen(port, () => console.log(`Listening on port ${port}.`));
