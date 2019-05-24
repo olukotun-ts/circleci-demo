@@ -91,6 +91,8 @@ workflows:
           #     only: master
       - promote-to-production:
           type: approval  
-          requires: deploy-staging
+          requires:
+            - deploy-staging
       - deploy-production:
-          requires: promote-to-production
+          requires:
+            - promote-to-production
