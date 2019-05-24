@@ -42,10 +42,16 @@ app.get('/metadata', (req, res) => {
 });
 
 app.get('/weather', (req, res) => {
+    const cities = [
+        4930956,    // Boston
+        5419384,    // Denver
+        5391959     // SanFrancisco
+    ];
+
     axios.get('https://api.openweathermap.org/data/2.5/group', {
         params: {
             APPID: process.env.WEATHER_API_TOKEN,
-            id: '4930956,5419384,5391959',  // OpenWeatherMap city ids for Boston, Denver, and SF.
+            id: cities.toString(),
             units: 'imperial'
         }
     })
