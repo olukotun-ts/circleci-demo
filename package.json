@@ -4,7 +4,6 @@
   "description": "name-button",
   "main": "server.js",
   "scripts": {
-    "build": "browserify js/main.js > public/bundle.js",
     "dev": "nodemon --ignore ./public --exec npm start",
     "start": "node server.js",
     "test": "echo 'tests pending'"
@@ -23,7 +22,6 @@
     "express": "^4.16.4"
   },
   "devDependencies": {
-    "browserify": "^16.2.3",
     "nodemon": "^1.19.0"
   }
 }
