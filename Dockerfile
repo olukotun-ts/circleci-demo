@@ -4,7 +4,6 @@ COPY . /app
 WORKDIR /app
 RUN npm install pm2 -g
 RUN npm install
-RUN npm run build
 RUN touch .env
 
 CMD pm2 start server.js --no-daemon
