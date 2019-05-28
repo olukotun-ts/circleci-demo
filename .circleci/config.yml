@@ -3,8 +3,6 @@ executors:
   my-executor:
     docker:
       - image: circleci/node:10.15
-        environment:
-          WEATHER_API_TOKEN: 025125de64260b379690a3ebaf22f9bb
 jobs:
   build:
     executor: my-executor
