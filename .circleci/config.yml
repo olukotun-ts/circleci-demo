@@ -88,9 +88,9 @@ workflows:
           requires:
             - test
             - build
-          # filters:
-          #   branches:
-          #     only: master
+          filters:
+            branches:
+              only: master
       - promote-to-production:
           type: approval  
           requires:
