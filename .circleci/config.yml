@@ -85,7 +85,7 @@ workflows:
   version: 2.1
   pre-flight_checks:
     jobs:
-      - pre-flight
+      - pre-flight:
         filters:
           branches:
             only: filters
