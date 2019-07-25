@@ -8,7 +8,12 @@ jobs:
     executor: my-executor
     steps:
       - checkout
-      - run: echo $CIRCLE_PULL_REQUEST
+      - run:
+          name: Check for SHArks
+          command: echo $CIRCLE_SHA1
+      - run:
+          name: Check if trigger is PR
+          command: echo $CIRCLE_PULL_REQUEST
   build:
     executor: my-executor
     steps:
