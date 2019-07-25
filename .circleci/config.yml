@@ -4,6 +4,11 @@ executors:
     docker:
       - image: circleci/node:10.15
 jobs:
+  pre-flight:
+    executor: my-executor
+    steps:
+      - checkout
+      - run: echo $CIRCLE_PULL_REQUEST
   build:
     executor: my-executor
     steps:
@@ -78,12 +83,15 @@ jobs:
           command: heroku container:release --app name-button web
 workflows:
   version: 2.1
-  build_and_test:
-    filters:
-      branches:
-        only: filters
+  pre-flight_checks:
     jobs:
+      - pre-flight
+        filters:
+          branches:
+            only: filters
       - test
+        requires:
+          - pre-flight
   build_test_and_deploy:
     jobs:
       - test
