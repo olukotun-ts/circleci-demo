@@ -13,7 +13,7 @@ jobs:
           command: echo $CIRCLE_SHA1
       - run:
           name: Check if trigger is PR
-          command: echo $CIRCLE_PULL_REQUEST
+          command: if [ -z $CIRCLE_PULL_REQUEST ]; then exit 1; fi
   build:
     executor: my-executor
     steps:
