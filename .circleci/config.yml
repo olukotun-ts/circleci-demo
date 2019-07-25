@@ -83,17 +83,12 @@ jobs:
           command: heroku container:release --app name-button web
 workflows:
   version: 2.1
-  pre-flight_checks:
+  build_test_and_deploy:
     jobs:
       - pre-flight:
         filters:
           branches:
             only: filters
-      - test:
-        requires:
-          - pre-flight
-  build_test_and_deploy:
-    jobs:
       - test
       - build
       - deploy-staging:
