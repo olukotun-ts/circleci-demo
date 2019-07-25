@@ -89,7 +89,7 @@ workflows:
         filters:
           branches:
             only: filters
-      - test
+      - test:
         requires:
           - pre-flight
   build_test_and_deploy:
