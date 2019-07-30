@@ -120,10 +120,10 @@ workflows:
             - start_infra
       - test:
           requires:
+            - build_migrator
             - build_test_image
       - stop_infra:
           requires:
-            - build_migrator
             - build_image
             - test
       - tag_&_push:
@@ -135,3 +135,4 @@ workflows:
       - deploy:
           requires:
             - dump_deploy_info
+            - tag_&_push
