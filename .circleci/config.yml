@@ -19,8 +19,6 @@ jobs:
     docker:
       - image: circleci/node:10.15
     steps:
-      - setup_remote_docker:
-          docker_layer_caching: true
       - checkout
       - run:
           name: Start Support Infrastructure
@@ -112,10 +110,28 @@ workflows:
     jobs:
       - start_infra
       - build_migrator
+          requires:
+            - start_infra
       - build_image
+          requires:
+            - start_infra
       - build_test_image
+          requires:
+            - start_infra
       - test
+          requires:
+            - build_test_image
       - stop_infra
+          requires:
+            - build_migrator
+            - build_image
+            - test
       - tag_&_push
+          requires:
+            - test
       - dump_deploy_info
+          requires:
+            - test
       - deploy
+          requires:
+            - dump_deploy_info
