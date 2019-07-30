@@ -73,11 +73,6 @@ jobs:
       - run:
           name: Force a failure
           command: exit 1
-  
-  stop_infra:
-    docker:
-      - image: circleci/node:10.15
-    steps:
       - run:
           name: Stop Support Infrastructure
           when: always
