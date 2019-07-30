@@ -109,29 +109,29 @@ workflows:
   build_test_and_deploy:
     jobs:
       - start_infra
-      - build_migrator
+      - build_migrator:
           requires:
             - start_infra
-      - build_image
+      - build_image:
           requires:
             - start_infra
-      - build_test_image
+      - build_test_image:
           requires:
             - start_infra
-      - test
+      - test:
           requires:
             - build_test_image
-      - stop_infra
+      - stop_infra:
           requires:
             - build_migrator
             - build_image
             - test
-      - tag_&_push
+      - tag_&_push:
           requires:
             - test
-      - dump_deploy_info
+      - dump_deploy_info:
           requires:
             - test
-      - deploy
+      - deploy:
           requires:
             - dump_deploy_info
