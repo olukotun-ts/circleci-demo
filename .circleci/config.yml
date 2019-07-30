@@ -4,6 +4,10 @@
 #  - add workflows
 #  - add test splitting based on timing 
 
+# todo:
+#  - modularize executor
+#  - modularize mock command
+
 version: 2
 commands:
   stub:
@@ -26,26 +30,39 @@ jobs:
           command: echo gecko
 
   build_migrator:
+    docker:
+      - image: circleci/node:10.15
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - checkout
       - run:
           name: Build Migrator
           command: echo gecko
 
   build_image:
+    docker:
+      - image: circleci/node:10.15
     steps:
-      - setup_remote_docker
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
           name: Build Image
           command: echo gecko
 
   build_test_image:
+    docker:
+      - image: circleci/node:10.15
     steps:
-      - setup_remote_docker
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
           name: Build Test Image
           command: echo gecko
   
   test:
+    docker:
+      - image: circleci/node:10.15
     steps:
       - run:
           name: Test
