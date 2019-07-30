@@ -1,112 +1,87 @@
-version: 2.1
-executors:
-  my-executor:
+# For transaction-grpc
+# Recommendations:
+#  - split build job into smaller jobs
+#  - add workflows
+#  - add test splitting based on timing 
+
+version: 2
+commands:
+  stub:
+    steps:
+      - run: echo gecko
+      
+jobs:
+  start_infra:
     docker:
       - image: circleci/node:10.15
-jobs:
-  pre-flight:
-    executor: my-executor
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - checkout
       - run:
-          name: Check for SHArks
-          command: echo $CIRCLE_SHA1
+          name: Start Support Infrastructure
+          command: echo gecko
       - run:
-          name: Check if trigger is PR
-          command: if [ -z $CIRCLE_PULL_REQUEST ]; then exit 1; fi
-  build:
-    executor: my-executor
+          name: Dump SSH key
+          command: echo gecko
+
+  build_migrator:
     steps:
-      - checkout
+      - run:
+          name: Build Migrator
+          command: echo gecko
+
+  build_image:
+    steps:
       - setup_remote_docker
       - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run: 
-          name: Build Docker image
-          command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
+          name: Build Image
+          command: echo gecko
+
+  build_test_image:
+    steps:
+      - setup_remote_docker
       - run:
-          name: Push Docker image to Docker Hub
-          command: docker push olukotunts/app:$CIRCLE_SHA1
+          name: Build Test Image
+          command: echo gecko
+  
   test:
-    executor: my-executor    
     steps:
-      - checkout
-      - run: npm install
-      - run: npm test
-  deploy-staging:
-    executor: my-executor
+      - run:
+          name: Test
+          command: echo gecko
+      - store_test_results:
+          path: /tmp/test_reports
+      - store_artifacts:
+          path: /tmp/test_reports
+          destination: test_reports
+  
+  stop_infra:
     steps:
-      - checkout
-      - setup_remote_docker
       - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run:
-          name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
-      - run:
-          name: Install Heroku CLI
-          command: curl https://cli-assets.heroku.com/install.sh | sh
-      - run:
-          name: Log in to Heroku Container Registry
-          command: heroku container:login
-      - run:
-          name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
-      - run:
-          name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button-staging/web
-      - run:
-          name: Deploy Docker image to Heroku
-          command: heroku container:release --app name-button-staging web
-  deploy-production:
-    executor: my-executor
+          name: Stop Support Infrastructure
+          when: always
+          command: echo gecko
+
+  tag_&_push:
     steps:
-      - checkout
-      - setup_remote_docker
       - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+          name: Tag & Push Image
+          command: echo gecko
+
+  dump_info:
+    steps:
       - run:
-          name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
+          name: Dump deployment info
+          command: echo gecko
+
+  deploy:
+    steps:
       - run:
-          name: Install Heroku CLI
-          command: curl https://cli-assets.heroku.com/install.sh | sh
-      - run:
-          name: Log in to Heroku Container Registry
-          command: heroku container:login
-      - run:
-          name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
-      - run:
-          name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button/web
-      - run:
-          name: Deploy Docker image to Heroku
-          command: heroku container:release --app name-button web
-workflows:
-  version: 2.1
-  build_test_and_deploy:
-    jobs:
-      - pre-flight:
-        filters:
-          branches:
-            only: filters
-      - test
-      - build
-      - deploy-staging:
-          requires:
-            - test
-            - build
-          filters:
-            branches:
-              only: master
-      - promote-to-production:
-          type: approval  
-          requires:
-            - deploy-staging
-      - deploy-production:
-          requires:
-            - promote-to-production
+          name: Deploy
+          command: echo gecko
+
+# workflows:
+#   version: 2
+#   build_test_and_deploy:
+#     jobs:
