@@ -74,6 +74,8 @@ jobs:
           destination: test_reports
   
   stop_infra:
+    docker:
+      - image: circleci/node:10.15
     steps:
       - run:
           name: Stop Support Infrastructure
@@ -81,18 +83,24 @@ jobs:
           command: echo gecko
 
   tag_&_push:
+    docker:
+      - image: circleci/node:10.15
     steps:
       - run:
           name: Tag & Push Image
           command: echo gecko
 
   dump_info:
+    docker:
+      - image: circleci/node:10.15
     steps:
       - run:
           name: Dump deployment info
           command: echo gecko
 
   deploy:
+    docker:
+      - image: circleci/node:10.15
     steps:
       - run:
           name: Deploy
