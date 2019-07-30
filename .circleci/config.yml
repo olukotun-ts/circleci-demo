@@ -1,13 +1,4 @@
 # For transaction-grpc
-# Recommendations:
-#  - split build job into smaller jobs
-#  - add workflows
-#  - add test splitting based on timing 
-
-# todo:
-#  - add checkout step
-#  - modularize executor
-#  - modularize mock command
 
 version: 2
 commands:
@@ -32,6 +23,7 @@ jobs:
     docker:
       - image: circleci/node:10.15
     steps:
+      - checkout
       - setup_remote_docker:
           docker_layer_caching: true
       - checkout
@@ -43,6 +35,7 @@ jobs:
     docker:
       - image: circleci/node:10.15
     steps:
+      - checkout
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
@@ -53,6 +46,7 @@ jobs:
     docker:
       - image: circleci/node:10.15
     steps:
+      - checkout
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
@@ -72,9 +66,9 @@ jobs:
       - store_artifacts:
           path: /tmp/test_reports
           destination: test_reports
-      - run:
-          name: Force a failure
-          command: exit 1
+      # - run:
+      #     name: Force a failure
+      #     command: exit 1
       - run:
           name: Stop Support Infrastructure
           when: always
@@ -84,6 +78,7 @@ jobs:
     docker:
       - image: circleci/node:10.15
     steps:
+      - checkout
       - run:
           name: Tag & Push Image
           command: echo gecko
@@ -92,6 +87,7 @@ jobs:
     docker:
       - image: circleci/node:10.15
     steps:
+      - checkout
       - run:
           name: Dump deployment info
           command: echo gecko
@@ -100,6 +96,7 @@ jobs:
     docker:
       - image: circleci/node:10.15
     steps:
+      - checkout
       - run:
           name: Deploy
           command: echo gecko
