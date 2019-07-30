@@ -5,6 +5,7 @@
 #  - add test splitting based on timing 
 
 # todo:
+#  - add checkout step
 #  - modularize executor
 #  - modularize mock command
 
@@ -58,10 +59,11 @@ jobs:
           name: Build Test Image
           command: echo gecko
   
-  test:
+  test_&_stop_infra:
     docker:
       - image: circleci/node:10.15
     steps:
+      - checkout
       - run:
           name: Test
           command: echo gecko
@@ -116,14 +118,10 @@ workflows:
       - build_test_image:
           requires:
             - start_infra
-      - test:
+      - test_&_stop_infra:
           requires:
             - build_migrator
             - build_test_image
-      - stop_infra:
-          requires:
-            - build_image
-            - test
       - tag_&_push:
           requires:
             - test
