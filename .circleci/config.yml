@@ -119,10 +119,10 @@ workflows:
             - build_test_image
       - tag_&_push:
           requires:
-            - test
+            - test_&_push
       - dump_deploy_info:
           requires:
-            - test
+            - test_&_push
       - deploy:
           requires:
             - dump_deploy_info
