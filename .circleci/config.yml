@@ -90,7 +90,7 @@ jobs:
           name: Tag & Push Image
           command: echo gecko
 
-  dump_info:
+  dump_deploy_info:
     docker:
       - image: circleci/node:10.15
     steps:
@@ -106,7 +106,16 @@ jobs:
           name: Deploy
           command: echo gecko
 
-# workflows:
-#   version: 2
-#   build_test_and_deploy:
-#     jobs:
+workflows:
+  version: 2
+  build_test_and_deploy:
+    jobs:
+      - start_infra
+      - build_migrator
+      - build_image
+      - build_test_image
+      - test
+      - stop_infra
+      - tag_&_push
+      - dump_deploy_info
+      - deploy
