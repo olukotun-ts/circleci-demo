@@ -1,11 +1,9 @@
-# For transaction-grpc
+# Recommendations for transaction-grpc:
+#  - split build job into smaller jobs
+#  - use workflow to orchestrate jobs
+#  - explore test-splitting for long-running tests
 
 version: 2
-commands:
-  stub:
-    steps:
-      - run: echo gecko
-      
 jobs:
   start_infra:
     docker:
