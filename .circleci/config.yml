@@ -11,6 +11,7 @@ jobs:
           condition: $CIRCLE_PULL_REQUEST
           steps:
             - run: echo "Build triggered by pull request"
+            - run: echo $CIRCLE_PULL_REQUEST
   build:
     executor: my-executor
     steps:
