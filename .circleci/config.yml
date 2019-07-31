@@ -99,9 +99,6 @@ workflows:
     jobs:
       - pr-condition
       - test
-      - test-pr:
-          requires:
-            - pre-flight
       - build
       - deploy-staging:
           requires:
