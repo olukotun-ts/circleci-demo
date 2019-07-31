@@ -8,7 +8,7 @@ jobs:
     executor: my-executor
     steps:
       when:
-        condition: $CIRCLE_PULL_REQUEST
+        condition: [ -z $CIRCLE_PULL_REQUEST ]
         steps:
           - run: echo "Build triggered by pull request"
   build:
