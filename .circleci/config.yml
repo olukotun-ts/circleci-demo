@@ -4,6 +4,13 @@ executors:
     docker:
       - image: circleci/node:10.15
 jobs:
+  pre-flight:
+    executor: my-executor
+    steps:
+      when:
+        condition: $CIRCLE_PULL_REQUEST
+        steps:
+          - run: echo "Build triggered by pull request"
   build:
     executor: my-executor
     steps:
@@ -24,6 +31,10 @@ jobs:
       - checkout
       - run: npm install
       - run: npm test
+  test-pr:
+    executor: my-executor    
+    steps:
+      - run: echo "Test triggered by pull request"
   deploy-staging:
     executor: my-executor
     steps:
@@ -80,7 +91,11 @@ workflows:
   version: 2.1
   build_test_and_deploy:
     jobs:
+      - pre-flight
       - test
+      - test-pr
+          requires:
+            - pre-flight
       - build
       - deploy-staging:
           requires:
