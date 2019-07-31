@@ -10,7 +10,13 @@ jobs:
       - when:
           condition: [ -z $CIRCLE_PULL_REQUEST ]
           steps:
-            - run: echo "Build triggered by pull request"
+            - run: echo "Build triggered by commit"
+            - run: echo $CIRCLE_PULL_REQUEST
+            - run: exit 1
+      - unless:
+          condition: [ -z CIRCLE_PULL_REQUEST ]
+          steps:
+            - run: echo "Build triggered by PR"
             - run: echo $CIRCLE_PULL_REQUEST
   build:
     executor: my-executor
