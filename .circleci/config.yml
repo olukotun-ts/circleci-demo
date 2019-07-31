@@ -8,12 +8,12 @@ jobs:
     executor: my-executor
     steps:
       - when:
-          condition: $CIRCLE_PULL_REQUEST
+          condition: [ -z $CIRCLE_PULL_REQUEST ]
           steps:
             - run: echo "Build triggered by commit"
             - run: echo $CIRCLE_PULL_REQUEST
       - unless:
-          condition: $CIRCLE_PULL_REQUEST
+          condition: [ -z $CIRCLE_PULL_REQUEST ]
           steps:
             - run: echo "Build triggered by PR"
             - run: echo $CIRCLE_PULL_REQUEST
