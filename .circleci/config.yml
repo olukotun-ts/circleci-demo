@@ -7,10 +7,10 @@ jobs:
   pre-flight:
     executor: my-executor
     steps:
-      when:
-        condition: [ -z $CIRCLE_PULL_REQUEST ]
-        steps:
-          - run: echo "Build triggered by pull request"
+      - when:
+          condition: [ -z $CIRCLE_PULL_REQUEST ]
+          steps:
+            - run: echo "Build triggered by pull request"
   build:
     executor: my-executor
     steps:
