@@ -93,14 +93,14 @@ jobs:
           name: Change Directories
           command: |
             pwd
-            cd ../
+            cd ..//
             pwd
           shell: cmd.exe
       - run:
           name: Escape Path
           command: |
             pwd
-            cd C:\Users
+            cd C:\\Users
             pwd
           shell: cmd.exe
 
