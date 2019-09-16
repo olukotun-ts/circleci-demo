@@ -1,8 +1,13 @@
 version: 2.1
+
+orbs:
+  win: circleci/windows@1.0.0
+
 executors:
   my-executor:
     docker:
       - image: circleci/node:10.15
+
 jobs:
   build:
     executor: my-executor
@@ -76,12 +81,21 @@ jobs:
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button web
+  escape-windows:
+    executor: win/vs2019
+    steps:
+      - checkout
+      - run:
+          name: Mic Check
+          command: echo gecko
+
 workflows:
   version: 2.1
   build_test_and_deploy:
     jobs:
       - test
       - build
+      - escape-windows
       - deploy-staging:
           requires:
             - test
