@@ -88,12 +88,21 @@ jobs:
       - run:
           name: Mic Check
           command: echo gecko
+          shell: cmd.exe
       - run:
           name: Change Directories
           command: |
             pwd
             cd ../
             pwd
+          shell: cmd.exe
+      - run:
+          name: Escape Path
+          command: |
+            pwd
+            cd C:\Users
+            pwd
+          shell: cmd.exe
 
 workflows:
   version: 2.1
