@@ -93,15 +93,18 @@ jobs:
           name: Change Directories
           command: |
             pwd
-            cd ..//
+            echo gecko
             pwd
           shell: cmd.exe
       - run:
           name: Escape Path
           command: |
+            cd C://Users//circleci
             pwd
-            cd C:\\Users
-            pwd
+          shell: cmd.exe
+      - run:
+          name: PWD
+          command: pwd
           shell: cmd.exe
 
 workflows:
