@@ -90,7 +90,7 @@ jobs:
           command: pwd ^
             /&& cd ../ ^
             /&& pwd ^
-            /&& cd c:\users\circleci\.ssh ^
+            /&& cd c:\\users\\circleci\\.ssh ^
             pwd
           shell: cmd.exe
       - run:
