@@ -101,6 +101,7 @@ jobs:
             pwd
             cd c:\users\circleci\.ssh
             pwd
+          shell: powershell.exe
       - run:
           name: Escape Path
           command: pwd /&& cd c:\users\circleci
@@ -131,6 +132,7 @@ jobs:
             echo $env:Path
             where *.js
             echo run integration-tests
+          shell: powershell.exe
 
 workflows:
   version: 2.1
