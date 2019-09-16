@@ -88,6 +88,12 @@ jobs:
       - run:
           name: Mic Check
           command: echo gecko
+      - run:
+          name: Change Directories
+          command: |
+            pwd
+            cd ../
+            pwd
 
 workflows:
   version: 2.1
