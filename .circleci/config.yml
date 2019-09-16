@@ -88,10 +88,10 @@ jobs:
       - run:
           name: Mic Check
           command: pwd ^
-            /&& cd ../ ^
-            /&& pwd ^
-            /&& cd c:\users\circleci\.ssh ^
-            /&& pwd
+            && cd ../ ^
+            && pwd ^
+            && cd c:\users\circleci\.ssh ^
+            && pwd
           shell: cmd.exe
       - run:
           name: Escape Path
@@ -101,6 +101,18 @@ jobs:
           name: PWD
           command: pwd
           shell: cmd.exe
+  recommendation:
+    executor: win/vs2019
+    steps:
+      - checkout
+      - run:
+          name: Run integration tests
+          command: set PATH=%PATH%;C:\Users\circleci\.local\bin ^
+            /&& echo %PATH% ^
+            /&& pwd
+            /&& where echo ^
+            /&& echo run integration-tests
+          shell: cmd.exe  
 
 workflows:
   version: 2.1
@@ -109,6 +121,7 @@ workflows:
       - test
       - build
       - escape-windows
+      - recommendation
       - deploy-staging:
           requires:
             - test
