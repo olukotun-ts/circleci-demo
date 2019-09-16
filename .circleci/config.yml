@@ -87,10 +87,10 @@ jobs:
       - checkout
       - run:
           name: Mic Check
-          command: pwd /&& ^
-            cd ../ /&& ^
-            pwd /&& ^
-            cd c:\users\circleci\.local\bin /&& ^
+          command: pwd ^
+            /&& cd ../ ^
+            /&& pwd ^
+            /&& cd c:\users\circleci\.local\bin ^
             pwd
           shell: cmd.exe
       - run:
