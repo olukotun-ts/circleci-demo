@@ -90,8 +90,8 @@ jobs:
           command: pwd ^
             /&& cd ../ ^
             /&& pwd ^
-            /&& cd c:\\users\\circleci\\.ssh ^
-            pwd
+            /&& cd c:\users\circleci\.ssh ^
+            /&& pwd
           shell: cmd.exe
       - run:
           name: Escape Path
