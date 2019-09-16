@@ -92,12 +92,6 @@ jobs:
             /&& pwd
           shell: cmd.exe
       - run:
-          name: Change Directories
-          command: pwd
-          command: echo gecko
-          command: pwd
-          shell: cmd.exe
-      - run:
           name: Escape Path
           command: cd C:\Users\circleci
           shell: cmd.exe
