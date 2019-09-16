@@ -94,6 +94,14 @@ jobs:
             && pwd
           shell: cmd.exe
       - run:
+          name: Power Check
+          command: |
+            pwd
+            cd ../
+            pwd
+            cd c:\users\circleci\.ssh
+            pwd
+      - run:
           name: Escape Path
           command: pwd /&& cd c:\users\circleci
           shell: cmd.exe
@@ -109,10 +117,20 @@ jobs:
           name: Run integration tests
           command: set PATH=%PATH%;C:\Users\circleci\.local\bin ^
             && echo %PATH% ^
-            && pwd
-            && where *.js ^
-            && echo run integration-tests
-          shell: cmd.exe  
+            && where state ^
+            && state run integration-tests
+          shell: cmd.exe
+  power-recommendation:
+    executor: win/vs2019
+    steps:
+      - checkout
+      - run:
+          name: Run integration tests
+          command: |
+            set PATH=%PATH%;C:\Users\circleci\.local\bin
+            echo %PATH%
+            where *.js
+            echo run integration-tests
 
 workflows:
   version: 2.1
@@ -121,7 +139,7 @@ workflows:
       - test
       - build
       - escape-windows
-      - recommendation
+      - power-recommendation
       - deploy-staging:
           requires:
             - test
