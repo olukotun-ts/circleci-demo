@@ -110,7 +110,7 @@ jobs:
           command: set PATH=%PATH%;C:\Users\circleci\.local\bin ^
             && echo %PATH% ^
             && pwd
-            && where ntuser.ini ^
+            && where *.js ^
             && echo run integration-tests
           shell: cmd.exe  
 
