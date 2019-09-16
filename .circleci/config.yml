@@ -127,8 +127,8 @@ jobs:
       - run:
           name: Run integration tests
           command: |
-            set PATH=%PATH%;C:\Users\circleci\.local\bin
-            echo %PATH%
+            $env:Path += ";C:\Users\circleci\.local\bin"
+            echo $env:Path
             where *.js
             echo run integration-tests
 
