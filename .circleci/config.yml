@@ -141,7 +141,10 @@ jobs:
       - checkout
       - run:
           name: Get GPU info
-          command: lshw -C display
+          command: sudo lshw -C display
+      - run:
+          name: Use lspci
+          command: lspci | grep VGA
 
 workflows:
   version: 2.1
