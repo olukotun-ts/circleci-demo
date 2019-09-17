@@ -133,6 +133,16 @@ jobs:
             where *.js
             echo run integration-tests
           shell: powershell.exe
+  gpu-poc:
+    machine:
+      image: circleci/classic:latest
+    resource_class: gpu.medium # Other options: gpu.small and gpu.large
+    steps:
+      - checkout
+      - run:
+          name: Get system information
+          command: uname -a
+
 
 workflows:
   version: 2.1
@@ -142,6 +152,7 @@ workflows:
       - build
       - escape-windows
       - power-recommendation
+      - gpu-poc
       - deploy-staging:
           requires:
             - test
