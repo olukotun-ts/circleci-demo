@@ -140,9 +140,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Get system information
-          command: uname -a
-
+          name: Get GPU info
+          command: lshw -C display
 
 workflows:
   version: 2.1
