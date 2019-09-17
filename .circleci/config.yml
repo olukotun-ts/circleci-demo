@@ -138,12 +138,8 @@ jobs:
       image: circleci/classic:latest
     resource_class: gpu.medium # Other options: gpu.small and gpu.large
     steps:
-      - checkout
       - run:
           name: Get GPU info
-          command: sudo lshw -C display
-      - run:
-          name: Use lspci
           command: lspci | grep VGA
 
 workflows:
