@@ -134,6 +134,18 @@ jobs:
             where *.js
             echo run integration-tests
           shell: powershell.exe
+  win-cmake-poc:
+    machine:
+      image: windows-server-2019-vs2019:201908-06
+    steps:
+      - run:
+          name: Install dependencies
+          shell: powershell.exe
+          command: |
+            wget "https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4-win64-x64.zip" -outfile "cmake.zip"
+            expand-archive -path 'cmake.zip' -destinationpath '.\cmake'
+            wget "ttps://www.python.org/ftp/python/3.7.4/python-3.7.4-embed-amd64.zip" -outfile "python.zip"
+            expand-archive -path 'python.zip' -destinationpath '.\python
   gpu-poc:
     machine:
       image: circleci/classic:latest
