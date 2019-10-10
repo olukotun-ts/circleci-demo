@@ -140,7 +140,7 @@ jobs:
     resource_class: windows.medium
     steps:
       - run:
-          name: Install dependencies
+          name: Install cmake, python
           shell: powershell.exe
           command: |
             $ProgressPreference = "SilentlyContinue"
@@ -158,9 +158,6 @@ jobs:
       - run:
           name: Get GPU info
           command: lspci | grep VGA
-  # dlc-poc:
-  #   machine:
-  #     image: circleci/classic:latest
   dlc-poc:
     executor: my-executor
     steps:
