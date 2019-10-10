@@ -1,7 +1,7 @@
 version: 2.1
 
-# orbs:
-#   win: circleci/windows@1.0.0
+orbs:
+  win: circleci/windows@1.0.0
 
 executors:
   my-executor:
@@ -137,6 +137,7 @@ jobs:
   win-cmake-poc:
     machine:
       image: windows-server-2019-vs2019:201908-06
+    resource_class: windows.medium
     steps:
       - run:
           name: Install dependencies
