@@ -6,7 +6,6 @@ jobs:
       - image: circleci/node:10.15
     steps:
       - checkout
-      - setup_remote_docker
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
@@ -28,7 +27,6 @@ jobs:
       - image: circleci/node:10.15
     steps:
       - checkout
-      - setup_remote_docker
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
@@ -55,7 +53,6 @@ jobs:
       - image: circleci/node:10.15
     steps:
       - checkout
-      - setup_remote_docker
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
