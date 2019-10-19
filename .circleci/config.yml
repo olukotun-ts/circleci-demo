@@ -1,13 +1,9 @@
 version: 2
 
-executors:
-  my-executor:
-    docker:
-      - image: circleci/node:10.15
-
 jobs:
   build:
-    executor: my-executor
+    docker:
+      - image: circleci/node:10.15
     steps:
       - checkout
       - setup_remote_docker
@@ -21,13 +17,15 @@ jobs:
           name: Push Docker image to Docker Hub
           command: docker push olukotunts/app:$CIRCLE_SHA1
   test:
-    executor: my-executor    
+    docker:
+      - image: circleci/node:10.15    
     steps:
       - checkout
       - run: npm install
       - run: npm test
   deploy-staging:
-    executor: my-executor
+    docker:
+      - image: circleci/node:10.15
     steps:
       - checkout
       - setup_remote_docker
@@ -53,7 +51,8 @@ jobs:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button-staging web
   deploy-production:
-    executor: my-executor
+    docker:
+      - image: circleci/node:10.15
     steps:
       - checkout
       - setup_remote_docker
