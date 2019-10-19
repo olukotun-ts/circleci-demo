@@ -1,7 +1,4 @@
-version: 2.1
-
-orbs:
-  win: circleci/windows@1.0.0
+version: 2
 
 executors:
   my-executor:
@@ -13,8 +10,7 @@ jobs:
     executor: my-executor
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
+      - setup_remote_docker
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
@@ -82,105 +78,13 @@ jobs:
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button web
-  escape-windows:
-    executor: win/vs2019
-    steps:
-      - checkout
-      - run:
-          name: Mic Check
-          command: pwd ^
-            && cd ../ ^
-            && pwd ^
-            && cd c:\users\circleci\.ssh ^
-            && pwd
-          shell: cmd.exe
-      - run:
-          name: Power Check
-          command: |
-            pwd
-            cd ../
-            pwd
-            cd c:\users\circleci\.ssh
-            pwd
-          shell: powershell.exe
-      - run:
-          name: Escape Path
-          command: pwd /&& cd c:\users\circleci
-          shell: cmd.exe
-      - run:
-          name: PWD
-          command: pwd
-          shell: cmd.exe
-  recommendation:
-    executor: win/vs2019
-    steps:
-      - checkout
-      - run:
-          name: Run integration tests
-          command: set PATH=%PATH%;C:\Users\circleci\.local\bin ^
-            && echo %PATH% ^
-            && where state ^
-            && state run integration-tests
-          shell: cmd.exe
-  power-recommendation:
-    executor: win/vs2019
-    steps:
-      - checkout
-      - run:
-          name: Run integration tests
-          command: |
-            $env:Path += ";C:\Users\circleci\.local\bin"
-            echo $env:Path
-            where *.js
-            echo run integration-tests
-          shell: powershell.exe
-  win-cmake-poc:
-    machine:
-      image: windows-server-2019-vs2019:201908-06
-    resource_class: windows.medium
-    steps:
-      - run:
-          name: Install cmake, python
-          shell: powershell.exe
-          command: |
-            $ProgressPreference = "SilentlyContinue"
-            Write-Output "[TAG] Get-Location"
-            Get-Location
-            wget "https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4-win64-x64.zip" -outfile "cmake.zip"
-            expand-archive -path 'cmake.zip' -destinationpath '.\cmake'
-            wget "https://www.python.org/ftp/python/3.7.4/python-3.7.4-embed-amd64.zip" -outfile "python.zip"
-            expand-archive -path 'python.zip' -destinationpath '.\python'
-  gpu-poc:
-    machine:
-      image: circleci/classic:latest
-    resource_class: gpu.medium # Other options: gpu.small and gpu.large
-    steps:
-      - run:
-          name: Get GPU info
-          command: lspci | grep VGA
-  dlc-poc:
-    executor: my-executor
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run: 
-          name: Build Docker image
-          command: docker build -t olukotunts/app-dlc:$CIRCLE_SHA1 .
-      - run:
-          name: Push Docker image to Docker Hub
-          command: docker push olukotunts/app-dlc:$CIRCLE_SHA1
 
 workflows:
-  version: 2.1
+  version: 2
   build_test_and_deploy:
     jobs:
       - test
       - build
-      - win-cmake-poc
       - deploy-staging:
           requires:
             - test
