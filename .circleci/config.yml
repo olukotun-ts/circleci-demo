@@ -2,8 +2,8 @@ version: 2
 
 jobs:
   build:
-    machine:
-      image: circleci/classic:latest
+    docker:
+      - image: circleci/node:10.15
     steps:
       - checkout
       - run:
@@ -19,15 +19,15 @@ jobs:
           name: Push Docker image to Docker Hub
           command: docker push olukotunts/app:$CIRCLE_SHA1
   test:
-    machine:
-      image: circleci/classic:latest    
+    docker:
+      - image: circleci/node:10.15    
     steps:
       - checkout
       - run: npm install
       - run: npm test
   deploy-staging:
-    machine:
-      image: circleci/classic:latest
+    docker:
+      - image: circleci/node:10.15
     steps:
       - checkout
       - run:
@@ -52,8 +52,8 @@ jobs:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button-staging web
   deploy-production:
-    machine:
-      image: circleci/classic:latest
+    docker:
+      - image: circleci/node:10.15
     steps:
       - checkout
       - run:
