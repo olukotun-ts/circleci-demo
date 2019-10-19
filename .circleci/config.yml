@@ -9,6 +9,9 @@ jobs:
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Check Docker status
+          command: docker info
       - run: 
           name: Build Docker image
           command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
