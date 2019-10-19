@@ -6,18 +6,27 @@ jobs:
       - image: circleci/node:10.15
     steps:
       - checkout
+      # - run:
+      #     name: Install Docker
+      #     command: |
+      #       sudo apt-get update
+      #       sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+      #       curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+      #       sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+      #       sudo apt-get update
+      #       sudo apt-get install -y docker-ce docker-ce-cli containerd.io
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run:
-          name: Check Docker status
-          command: sudo service docker status
+      # - run:
+      #     name: Check Docker status
+      #     command: sudo service docker status
       - run: 
           name: Build Docker image
-          command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
+          command: sudo docker build -t olukotunts/app:$CIRCLE_SHA1 .
       - run:
           name: Push Docker image to Docker Hub
-          command: docker push olukotunts/app:$CIRCLE_SHA1
+          command: sudo docker push olukotunts/app:$CIRCLE_SHA1
   test:
     docker:
       - image: circleci/node:10.15    
@@ -35,7 +44,7 @@ jobs:
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
       - run:
           name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
+          command: sudo docker pull olukotunts/app:$CIRCLE_SHA1
       - run:
           name: Install Heroku CLI
           command: curl https://cli-assets.heroku.com/install.sh | sh
@@ -44,10 +53,10 @@ jobs:
           command: heroku container:login
       - run:
           name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
+          command: sudo docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
       - run:
           name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button-staging/web
+          command: sudo docker push registry.heroku.com/name-button-staging/web
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button-staging web
@@ -61,7 +70,7 @@ jobs:
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
       - run:
           name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
+          command: sudo docker pull olukotunts/app:$CIRCLE_SHA1
       - run:
           name: Install Heroku CLI
           command: curl https://cli-assets.heroku.com/install.sh | sh
@@ -70,10 +79,10 @@ jobs:
           command: heroku container:login
       - run:
           name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
+          command: sudo docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
       - run:
           name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button/web
+          command: sudo docker push registry.heroku.com/name-button/web
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button web
