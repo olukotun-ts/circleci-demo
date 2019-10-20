@@ -68,7 +68,7 @@ jobs:
           cluster: "standard-cluster-1"
           container: "demo-container"
           deployment: "deployment/demo-deploy"
-          image: "demo-image-"$CIRCLE_SHA1
+          image: "demo-image:latest"
 
   deploy-production:
     docker:
