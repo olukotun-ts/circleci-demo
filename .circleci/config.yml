@@ -2,8 +2,8 @@ version: 2
 
 jobs:
   build:
-    docker:
-      - image: circleci/node:10.15
+    machine:
+      - image: circleci/classic:latest
     steps:
       - checkout
       # - run:
@@ -17,7 +17,6 @@ jobs:
       #       sudo apt-cache policy docker-ce
       #       sudo apt-get install -y docker-ce='5:19.03.4~3-0~debian-stretch' docker-ce-cli='5:19.03.4~3-0~debian-stretch' containerd.io
       #       sudo docker run hello-world
-      - setup_remote_docker
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
@@ -28,18 +27,17 @@ jobs:
           name: Push Docker image to Docker Hub
           command: sudo docker push olukotunts/app:$CIRCLE_SHA1
   test:
-    docker:
-      - image: circleci/node:10.15    
+    machine:
+      - image: circleci/classic:latest    
     steps:
       - checkout
       - run: npm install
       - run: npm test
   deploy-staging:
-    docker:
-      - image: circleci/node:10.15
+    machine:
+      - image: circleci/classic:latest
     steps:
       - checkout
-      - setup_remote_docker
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
@@ -62,11 +60,10 @@ jobs:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button-staging web
   deploy-production:
-    docker:
-      - image: circleci/node:10.15
+    machine:
+      - image: circleci/classic:latest
     steps:
       - checkout
-      - setup_remote_docker
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
