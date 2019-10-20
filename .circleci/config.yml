@@ -64,7 +64,7 @@ jobs:
           command: docker pull olukotunts/app:$CIRCLE_SHA1
       - gcp-gke/install
       - gcp-gke/init
-      - gcp-gke/rollout-image
+      - gcp-gke/rollout-image:
           cluster: "standard-cluster-1"
           container: "demo-container"
           deployment: "deployment/demo-deploy"
