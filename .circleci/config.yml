@@ -1,4 +1,7 @@
-version: 2
+version: 2.1
+
+orbs:
+  gcp-gke: circleci/gcp-gke@0.2.0
 
 jobs:
   build:
@@ -47,9 +50,27 @@ jobs:
       - run:
           name: Push Docker image to Heroku
           command: docker push registry.heroku.com/name-button-staging/web
+  deploy-k8s:
+    docker:
+      - image: circleci/node:10.15
+    steps:
+      - checkout
+      - setup_remote_docker
       - run:
-          name: Deploy Docker image to Heroku
-          command: heroku container:release --app name-button-staging web
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Pull Docker image from Docker Hub
+          command: docker pull olukotunts/app:$CIRCLE_SHA1
+      - run:
+          name: Install gcloud and kubectl
+          command: gcp-gke/install
+      - run:
+          name: Initialize gcloud CLI
+          command: gcp-gke/init
+      - run:
+          name: Deploy to cluster
+          command: gcp-gke/rollout-image
   deploy-production:
     docker:
       - image: circleci/node:10.15
@@ -85,6 +106,10 @@ workflows:
       - test
       - build
       - deploy-staging:
+          requires:
+            - test
+            - build
+      - deploy-k8s:
           requires:
             - test
             - build
