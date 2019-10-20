@@ -64,10 +64,11 @@ jobs:
           command: docker pull olukotunts/app:$CIRCLE_SHA1
       - gcp-gke/install
       - gcp-gke/init
+      - run: kubectl apply -f kubectl.yml
       - gcp-gke/rollout-image:
           cluster: "standard-cluster-1"
           container: "demo-container"
-          deployment: "deployment/demo-deploy"
+          deployment: "demo-deploy"
           image: "demo-image:latest"
 
   deploy-production:
