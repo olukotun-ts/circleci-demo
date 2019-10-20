@@ -2,21 +2,11 @@ version: 2
 
 jobs:
   build:
-    machine:
-      - image: circleci/classic:latest
+    docker:
+      image: circleci/node:10.15
     steps:
       - checkout
-      # - run:
-      #     name: Install Docker
-      #     command: |
-      #       sudo apt-get update
-      #       sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent lsb-release software-properties-common
-      #       curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-      #       sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
-      #       sudo apt-get update
-      #       sudo apt-cache policy docker-ce
-      #       sudo apt-get install -y docker-ce='5:19.03.4~3-0~debian-stretch' docker-ce-cli='5:19.03.4~3-0~debian-stretch' containerd.io
-      #       sudo docker run hello-world
+      - setup_remote_docker
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
@@ -27,64 +17,67 @@ jobs:
           name: Push Docker image to Docker Hub
           command: sudo docker push olukotunts/app:$CIRCLE_SHA1
   test:
-    machine:
-      - image: circleci/classic:latest    
+    docker:
+      image: circleci/node:10.15    
     steps:
       - checkout
+      - setup_remote_docker
       - run: npm install
       - run: npm test
-  # deploy-staging:
-  #   machine:
-  #     - image: circleci/classic:latest
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: Log in to Docker Hub
-  #         command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-  #     - run:
-  #         name: Pull Docker image from Docker Hub
-  #         command: sudo docker pull olukotunts/app:$CIRCLE_SHA1
-  #     - run:
-  #         name: Install Heroku CLI
-  #         command: curl https://cli-assets.heroku.com/install.sh | sh
-  #     - run:
-  #         name: Log in to Heroku Container Registry
-  #         command: heroku container:login
-  #     - run:
-  #         name: Tag Docker image
-  #         command: sudo docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
-  #     - run:
-  #         name: Push Docker image to Heroku
-  #         command: sudo docker push registry.heroku.com/name-button-staging/web
-  #     - run:
-  #         name: Deploy Docker image to Heroku
-  #         command: heroku container:release --app name-button-staging web
-  # deploy-production:
-  #   machine:
-  #     - image: circleci/classic:latest
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: Log in to Docker Hub
-  #         command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-  #     - run:
-  #         name: Pull Docker image from Docker Hub
-  #         command: sudo docker pull olukotunts/app:$CIRCLE_SHA1
-  #     - run:
-  #         name: Install Heroku CLI
-  #         command: curl https://cli-assets.heroku.com/install.sh | sh
-  #     - run:
-  #         name: Log in to Heroku Container Registry
-  #         command: heroku container:login
-  #     - run:
-  #         name: Tag Docker image
-  #         command: sudo docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
-  #     - run:
-  #         name: Push Docker image to Heroku
-  #         command: sudo docker push registry.heroku.com/name-button/web
-  #     - run:
-  #         name: Deploy Docker image to Heroku
-  #         command: heroku container:release --app name-button web
+  deploy-staging:
+    docker:
+      image: circleci/node:10.15
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Pull Docker image from Docker Hub
+          command: sudo docker pull olukotunts/app:$CIRCLE_SHA1
+      - run:
+          name: Install Heroku CLI
+          command: curl https://cli-assets.heroku.com/install.sh | sh
+      - run:
+          name: Log in to Heroku Container Registry
+          command: heroku container:login
+      - run:
+          name: Tag Docker image
+          command: sudo docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
+      - run:
+          name: Push Docker image to Heroku
+          command: sudo docker push registry.heroku.com/name-button-staging/web
+      - run:
+          name: Deploy Docker image to Heroku
+          command: heroku container:release --app name-button-staging web
+  deploy-production:
+    docker:
+      image: circleci/node:10.15
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Pull Docker image from Docker Hub
+          command: sudo docker pull olukotunts/app:$CIRCLE_SHA1
+      - run:
+          name: Install Heroku CLI
+          command: curl https://cli-assets.heroku.com/install.sh | sh
+      - run:
+          name: Log in to Heroku Container Registry
+          command: heroku container:login
+      - run:
+          name: Tag Docker image
+          command: sudo docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
+      - run:
+          name: Push Docker image to Heroku
+          command: sudo docker push registry.heroku.com/name-button/web
+      - run:
+          name: Deploy Docker image to Heroku
+          command: heroku container:release --app name-button web
 
 workflows:
   version: 2
@@ -92,14 +85,14 @@ workflows:
     jobs:
       - test
       - build
-      # - deploy-staging:
-      #     requires:
-      #       - test
-      #       - build
-      # - promote-to-production:
-      #     type: approval  
-      #     requires:
-      #       - deploy-staging
-      # - deploy-production:
-      #     requires:
-      #       - promote-to-production
+      - deploy-staging:
+          requires:
+            - test
+            - build
+      - promote-to-production:
+          type: approval  
+          requires:
+            - deploy-staging
+      - deploy-production:
+          requires:
+            - promote-to-production
