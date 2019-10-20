@@ -65,7 +65,11 @@ jobs:
       - gcp-gke/install
       - gcp-gke/init
       - gcp-gke/rollout-image
-      
+          cluster: "standard-cluster-1"
+          container: "demo-container"
+          deployment: "deployment/demo-deploy"
+          image: "demo-image-"$CIRCLE_SHA1
+
   deploy-production:
     docker:
       - image: circleci/node:10.15
