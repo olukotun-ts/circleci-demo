@@ -62,9 +62,7 @@ jobs:
       - run:
           name: Pull Docker image from Docker Hub
           command: docker pull olukotunts/app:$CIRCLE_SHA1
-      - run:
-          name: Install gcloud and kubectl
-          command: gcp-gke/install
+      - gcp-gke/install
       - run:
           name: Initialize gcloud CLI
           command: gcp-gke/init
