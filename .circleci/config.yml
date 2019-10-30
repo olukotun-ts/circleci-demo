@@ -173,7 +173,19 @@ jobs:
       - run:
           name: Push Docker image to Docker Hub
           command: docker push olukotunts/app-dlc:$CIRCLE_SHA1
-
+  conditional-cache-check:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - run:
+          name: Build jars
+          command: |
+            if [ -d ~/.m2 ]
+            then
+              echo "Directory ~/.m2 restored from cache"
+            else
+              INSERT_COMMAND_HERE
+            fi
 workflows:
   version: 2.1
   build_test_and_deploy:
