@@ -186,6 +186,14 @@ jobs:
             else
               INSERT_COMMAND_HERE
             fi
+  opctl-poc:
+    docker: 
+      image: opctl/opctl:0.1.25
+      entrypoint: /bin/sh
+    working_directory: /hello-world
+    steps:
+      - checkout
+      - run: opctl run hello-world
             
 workflows:
   version: 2.1
