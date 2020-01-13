@@ -188,8 +188,8 @@ jobs:
             fi
   opctl-poc:
     docker: 
-      image: opctl/opctl:0.1.25
-      entrypoint: /bin/sh
+      - image: opctl/opctl:0.1.25
+          entrypoint: /bin/sh
     working_directory: /hello-world
     steps:
       - checkout
