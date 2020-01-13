@@ -193,7 +193,6 @@ workflows:
     jobs:
       - test
       - build
-      - win-cmake-poc
       - deploy-staging:
           requires:
             - test
