@@ -187,6 +187,20 @@ jobs:
               INSERT_COMMAND_HERE
             fi
             
+  conditional-cache-check:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - run:
+  name: Install yarn dependencies
+  command: |
+    if [ -d ~/data/node_modules ]
+    then
+      echo "Dependencies restored from cache"
+    else
+      INSERT_COMMAND_HERE
+    fi
+            
 workflows:
   version: 2.1
   build_test_and_deploy:
