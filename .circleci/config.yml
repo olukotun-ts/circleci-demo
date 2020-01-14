@@ -191,13 +191,10 @@ jobs:
       image: ubuntu-1604:201903-01
     steps:
       - checkout
-      - run: pwd
       - run:
           name: Run opctl
           command: |
-            cd $CIRCLE_WORKING_DIRECTORY/hello-world
-            pwd
-            docker run --privileged opctl/opctl:0.1.25 opctl run hello-world
+            docker run --privileged opctl/opctl:0.1.25 opctl run github.com/opspec-pkgs/uuid.v4.generate
             
 workflows:
   version: 2.1
