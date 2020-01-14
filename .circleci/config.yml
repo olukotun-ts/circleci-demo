@@ -189,7 +189,7 @@ jobs:
   opctl-poc:
     docker: 
       - image: opctl/opctl:0.1.25
-        entrypoint: /bin/sh
+        # entrypoint: /bin/sh
     working_directory: /hello-world
     steps:
       - checkout
