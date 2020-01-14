@@ -193,7 +193,7 @@ jobs:
     working_directory: /hello-world
     steps:
       - checkout
-      - run: opctl run hello-world
+      - run: sudo opctl run hello-world
             
 workflows:
   version: 2.1
