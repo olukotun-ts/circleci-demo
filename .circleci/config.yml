@@ -189,9 +189,9 @@ jobs:
   opctl-poc:
     machine:
       image: ubuntu-1604:201903-01
-    working_directory: /hello-world
     steps:
       - checkout
+      - run: pwd
       - run: docker run --privileged opctl/opctl:0.1.25 opctl run hello-world
             
 workflows:
