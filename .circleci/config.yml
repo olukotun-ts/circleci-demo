@@ -192,9 +192,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install opctl
+          command: curl -L https://github.com/opctl/opctl/releases/download/0.1.25/opctl0.1.25.linux.tgz | sudo tar -xzv -C /usr/local/bin
+      - run:
           name: Run opctl
-          command: |
-            docker run opctl/opctl:0.1.25 opctl run github.com/opspec-pkgs/uuid.v4.generate
+          command: opctl run hello-world
             
 workflows:
   version: 2.1
