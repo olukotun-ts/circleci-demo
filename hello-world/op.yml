@@ -5,4 +5,4 @@ description: echoes hello world
 run:
   container:
     image: { ref: 'alpine:3.6'}
-    cmd: [ echo, 'hello world!']
+    cmd: [ echo, "hello world!"]
