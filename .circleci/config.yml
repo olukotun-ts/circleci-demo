@@ -194,7 +194,7 @@ jobs:
       - run:
           name: Run opctl
           command: |
-            docker run --privileged opctl/opctl:0.1.25 opctl run github.com/opspec-pkgs/uuid.v4.generate
+            docker run opctl/opctl:0.1.25 opctl run github.com/opspec-pkgs/uuid.v4.generate
             
 workflows:
   version: 2.1
