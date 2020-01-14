@@ -192,7 +192,10 @@ jobs:
     steps:
       - checkout
       - run: pwd
-      - run: docker run --privileged opctl/opctl:0.1.25 opctl run hello-world
+      - run: |
+        cd $CIRCLE_WORKING_DIRECTORY/hello-world
+        pwd
+        docker run --privileged opctl/opctl:0.1.25 opctl run hello-world
             
 workflows:
   version: 2.1
