@@ -223,7 +223,7 @@ workflows:
       - test
       - build
       - opctl-poc
-      - dict-poc:
+      - env-var-poc:
           context:
             context1
             context2
