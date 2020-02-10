@@ -226,7 +226,7 @@ workflows:
       - env-var-poc:
           context:
             - context1
-              context2
+            - context2
       - deploy-staging:
           requires:
             - test
