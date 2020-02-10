@@ -205,10 +205,10 @@ jobs:
     steps:
       - run:
           name: Test context1
-          command: echo context1-var1
+          command: echo var1
       - run: 
           name: Test context2
-          command: echo context2-var1
+          command: echo var1
       - run:
           name: Set variable
           command: ECR_URL=$($REGISTRY_ID).dkr.us-east-1.amazonaws.com/myregistry
@@ -223,7 +223,7 @@ workflows:
       - test
       - build
       - opctl-poc
-      - dict-poc
+      - dict-poc:
           context:
             context1
             context2
