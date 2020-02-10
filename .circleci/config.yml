@@ -225,8 +225,8 @@ workflows:
       - opctl-poc
       - env-var-poc:
           context:
-            context1
-            context2
+            - context1
+              context2
       - deploy-staging:
           requires:
             - test
