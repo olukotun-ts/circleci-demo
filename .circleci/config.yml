@@ -205,24 +205,6 @@ jobs:
       - run:
           name: Run opctl
           command: opctl run hello-world
-  env-var-poc:
-    machine:
-      image: circleci/classic:latest
-    environment:
-      REGISTRY_ID: 12345
-    steps:
-      - run:
-          name: Test context1
-          command: echo var1
-      - run: 
-          name: Test context2
-          command: echo var1
-      - run:
-          name: Set variable
-          command: ECR_URL=$($REGISTRY_ID).dkr.us-east-1.amazonaws.com/myregistry
-      - run:
-          name: Verify variable set
-          command: echo $ECR_URL
             
 workflows:
   version: 2.1
@@ -231,10 +213,6 @@ workflows:
       - test
       - build
       - win-python2
-      - env-var-poc:
-          context:
-            - context1
-            - context2
       - deploy-staging:
           requires:
             - test
