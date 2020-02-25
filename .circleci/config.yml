@@ -148,7 +148,7 @@ jobs:
     steps:
       - checkout
       - runpy
-          filename: debug.py
+          filename: "debug.py"
   win-cmake-poc:
     machine:
       image: windows-server-2019-vs2019:201908-06
