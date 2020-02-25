@@ -141,7 +141,7 @@ jobs:
       - run:
           name: Run Python 2 image
           command: docker run -v "$PWD":/usr/src/myapp -w /usr/src/myapp python:2 python debug.py
-          # shell: powershell.exe
+          shell: bash.exe
   win-cmake-poc:
     machine:
       image: windows-server-2019-vs2019:201908-06
