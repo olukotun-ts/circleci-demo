@@ -140,7 +140,7 @@ jobs:
       - checkout
       - run:
           name: Run Python 2 image
-          command: docker run -v C:/Users/circleci/project:/usr/src/myapp -w /usr/src/myapp python:2 python debug.py
+          command: docker run -v C:/Users/circleci/project:C:/Users/circleci/project -w C:/Users/circleci/project python:2 python debug.py
           # shell: bash.exe
   win-cmake-poc:
     machine:
