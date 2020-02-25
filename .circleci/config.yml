@@ -147,7 +147,7 @@ jobs:
     executor: win/vs2019
     steps:
       - checkout
-      - runpy
+      - runpy:
           filename: "debug.py"
   win-cmake-poc:
     machine:
