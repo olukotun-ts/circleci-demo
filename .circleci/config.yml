@@ -8,6 +8,15 @@ executors:
     docker:
       - image: circleci/node:10.15
 
+commands:
+  runpy:
+    description: "Run script in a Python 2 container"
+    parameters:
+      filename:
+        type: string
+    steps:
+      - run: docker run -v C:/Users/circleci/project:C:/Users/circleci/project -w C:/Users/circleci/project python:2 python << parameters.filename >>
+
 jobs:
   build:
     executor: my-executor
@@ -138,10 +147,8 @@ jobs:
     executor: win/vs2019
     steps:
       - checkout
-      - run:
-          name: Run Python 2 image
-          command: docker run -v C:/Users/circleci/project:C:/Users/circleci/project -w C:/Users/circleci/project python:2 python debug.py
-          # shell: bash.exe
+      - runpy
+          filename: debug.py
   win-cmake-poc:
     machine:
       image: windows-server-2019-vs2019:201908-06
