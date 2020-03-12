@@ -126,10 +126,10 @@ jobs:
       - run:
           name: Run integration tests
           command: echo %PATH% ^
-            && set PATH=%PATH%;C:\Users\circleci ^
-            && echo %PATH% ^
-            && echo There's no place like %HOME% ^
-            && pwd
+            && echo ======== ^
+            && pwd ^
+            && echo ======== ^
+            && echo There's no place like %HOME%
           shell: cmd.exe
   power-recommendation:
     executor: win/vs2019
