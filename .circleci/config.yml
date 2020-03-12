@@ -129,7 +129,7 @@ jobs:
           command: set PATH=%PATH%;C:\Users\circleci\.local\bin ^
             && echo %PATH% ^
             && echo 'echo... echoo... echooo...' ^
-            && echo %PATH% | grep 'python'
+            && echo %PATH% | findstr 'bin'
           shell: cmd.exe
   power-recommendation:
     executor: win/vs2019
