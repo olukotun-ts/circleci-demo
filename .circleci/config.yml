@@ -121,8 +121,7 @@ jobs:
           command: pwd
           shell: cmd.exe
   recommendation:
-    machine:
-      image: windows-server-2019-vs2019:201908-06
+    executor: win/vs2019
     steps:
       - checkout
       - run:
