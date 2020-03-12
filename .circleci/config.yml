@@ -128,8 +128,10 @@ jobs:
           name: Run integration tests
           command: set PATH=%PATH%;C:\Users\circleci\.local\bin ^
             && echo %PATH% ^
-            && echo 'echo... echoo... echooo...' ^
-            && echo %PATH% | findstr 'bin'
+            && echo echo... echoo... echooo... ^
+            && cd .. ^
+            && echo There's no place like %HOME% ^
+            && pwd
           shell: cmd.exe
   power-recommendation:
     executor: win/vs2019
