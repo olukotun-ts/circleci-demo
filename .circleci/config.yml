@@ -129,8 +129,7 @@ jobs:
           command: set PATH=%PATH%;C:\Users\circleci\.local\bin ^
             && echo %PATH% ^
             && echo 'echo... echoo... echooo...' ^
-            && where state ^
-            && state run integration-tests
+            && echo %PATH% | grep 'python'
           shell: cmd.exe
   power-recommendation:
     executor: win/vs2019
