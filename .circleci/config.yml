@@ -126,10 +126,9 @@ jobs:
       - checkout
       - run:
           name: Run integration tests
-          command: set PATH=%PATH%;C:\Users\circleci\.local\bin ^
+          command: echo %PATH% ^
+            && set PATH=%PATH%;C:\Users\circleci ^
             && echo %PATH% ^
-            && echo echo... echoo... echooo... ^
-            && cd .. ^
             && echo There's no place like %HOME% ^
             && pwd
           shell: cmd.exe
