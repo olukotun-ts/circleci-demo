@@ -41,14 +41,12 @@ jobs:
       - run:
           name: Compile and run tests
           command: mvn package   
-      - run:
-          name: Publish artifacts
-          command: nexus-platform-orb/publish
-            filename: target/demo-java-spring-0.0.1-SNAPSHOT.jar
       - store_test_results:
           path: target/surefire-reports   
       - store_artifacts:
           path: target/demo-java-spring-0.0.1-SNAPSHOT.jar
+      - nexus-platform-orb/publish:
+          filename: target/demo-java-spring-0.0.1-SNAPSHOT.jar
   build:
     executor: my-executor
     steps:
