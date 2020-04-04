@@ -32,13 +32,14 @@ jobs:
     #     name: mysql
     docker:
       - image: circleci/php:7.1-apache-node-browsers # The primary container where steps are run
+        environment:
+          MYSQL_HOST: 127.0.0.1
       - image: circleci/mysql:5.7.26
         environment:
           MYSQL_ROOT_PASSWORD: rootpw
           MYSQL_DATABASE: test_db
           MYSQL_USER: user
           MYSQL_PASSWORD: passw0rd
-          MYSQL_HOST: 127.0.0.1
     steps:
       - checkout
       # - run:
