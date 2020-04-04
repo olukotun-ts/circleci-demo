@@ -35,7 +35,7 @@ jobs:
         environment:
           MYSQL_HOST: 127.0.0.1
           MYSQL_USER: user
-          MYSQL_PASSWORD: passw0rd
+          MYSQL_PASSWORD: ""
       - image: circleci/mysql:5.7.26
         environment:
           # MYSQL_HOST: 127.0.0.1
