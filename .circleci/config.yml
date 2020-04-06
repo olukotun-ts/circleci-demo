@@ -20,25 +20,13 @@ commands:
 
 jobs:
   db-poc:
-    # docker:
-    #   - image: circleci/ruby:2.6.3-stretch
-    #     environment:
-    #       RAILS_ENV: test
-    #       MYSQL_HOST: 127.0.0.1
-    #       MYSQL_USER: root
-    #       MYSQL_PASSWORD: ""
-    #       TEST_ENV_NUMBER: ${CIRCLE_BUILD_NUM}
-    #   - image: circleci/mysql:5.7.26
-    #     name: mysql
     docker:
       - image: circleci/ruby:2.6.3-stretch
         environment:
           MYSQL_HOST: 127.0.0.1
       - image: circleci/mysql:5.7.26
-        name: mysql
         environment:
-          # MYSQL_HOST: 127.0.0.1
-          # MYSQL_ROOT_PASSWORD: rootpw
+          MYSQL_ROOT_PASSWORD: rootpw
           MYSQL_DATABASE: test_db
           MYSQL_USER: user
           MYSQL_PASSWORD: passw0rd
