@@ -19,6 +19,11 @@ commands:
       - run: docker run -v C:/Users/circleci/project:C:/Users/circleci/project -w C:/Users/circleci/project python:2 python << parameters.filename >>
 
 jobs:
+  mach-poc:
+    machine: true
+    steps:
+      - checkout
+      - run: echo gecko
   db-poc:
     docker:
       - image: circleci/ruby:2.6.3-stretch
@@ -255,6 +260,7 @@ workflows:
       - test
       - build
       - db-poc
+      - mach-poc
       - deploy-staging:
           requires:
             - test
