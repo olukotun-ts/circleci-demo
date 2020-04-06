@@ -35,6 +35,7 @@ jobs:
         environment:
           MYSQL_HOST: 127.0.0.1
       - image: circleci/mysql:5.7.26
+        name: mysql
         environment:
           # MYSQL_HOST: 127.0.0.1
           # MYSQL_ROOT_PASSWORD: rootpw
