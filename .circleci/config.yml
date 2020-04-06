@@ -23,10 +23,8 @@ jobs:
     docker:
       - image: circleci/ruby:2.6.3-stretch
         environment:
-          # MYSQL_HOST: 127.0.0.1
-          MYSQL_HOST: localhost
+          MYSQL_HOST: 127.0.0.1
       - image: circleci/mysql:5.7.26
-        # name: mysql
         environment:
           MYSQL_ROOT_PASSWORD: rootpw
           MYSQL_DATABASE: test_db
