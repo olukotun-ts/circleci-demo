@@ -259,9 +259,9 @@ workflows:
     jobs:
       - test
       - build
-      - db-poc
+      - db-poc:
           name: db
-      - mach-poc
+      - mach-poc:
           requires:
             - db
       - deploy-staging:
