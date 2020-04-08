@@ -268,7 +268,6 @@ workflows:
           requires:
             - test
             - build
-            - db-poc
       - promote-to-production:
           type: approval  
           requires:
