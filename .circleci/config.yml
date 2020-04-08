@@ -260,7 +260,10 @@ workflows:
       - test
       - build
       - db-poc
+          name: db
       - mach-poc
+          requires:
+            - db
       - deploy-staging:
           requires:
             - test
