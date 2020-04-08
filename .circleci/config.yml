@@ -19,45 +19,6 @@ commands:
       - run: docker run -v C:/Users/circleci/project:C:/Users/circleci/project -w C:/Users/circleci/project python:2 python << parameters.filename >>
 
 jobs:
-  mach-poc:
-    machine: true
-    steps:
-      - checkout
-      - run: echo gecko
-  db-poc:
-    docker:
-      - image: circleci/ruby:2.6.3-stretch
-        environment:
-          MYSQL_HOST: 127.0.0.1
-      - image: circleci/mysql:5.7.26
-        environment:
-          MYSQL_ROOT_PASSWORD: rootpw
-          MYSQL_DATABASE: test_db
-          MYSQL_USER: user
-          MYSQL_PASSWORD: passw0rd
-    steps:
-      - checkout
-      # - run:
-      # # Our primary container isn't MYSQL so run a sleep command until it's ready.
-      #     name: Waiting for MySQL to be ready
-      #     command: |
-      #       for i in `seq 1 10`;
-      #       do
-      #         nc -z 127.0.0.1 3306 && echo Success && exit 0
-      #         echo -n .
-      #         sleep 1
-      #       done
-      #       echo Failed waiting for MySQL && exit 1
-      - run:
-          name: Install MySQL CLI; Import dummy data; run an example query
-          command: |
-            sudo apt-get update
-            sudo apt-get install default-mysql-client
-            # mysql -h 127.0.0.1 -u user -ppassw0rd test_db < sql-data/dummy.sql
-            # mysql -h 127.0.0.1 -u user -ppassw0rd --execute="SELECT * FROM test_db.Persons"
-            mysql -u user -ppassw0rd test_db < sql-data/dummy.sql
-            mysql -u user -ppassw0rd --execute="SELECT * FROM test_db.Persons"
-
   build:
     executor: my-executor
     steps:
@@ -259,11 +220,6 @@ workflows:
     jobs:
       - test
       - build
-      - db-poc:
-          name: db
-      - mach-poc:
-          requires:
-            - db
       - deploy-staging:
           requires:
             - test
