@@ -1,0 +1,234 @@
+version: 2.1
+
+orbs:
+  nexus-platform-orb: sonatype/nexus-platform-orb@1.0.24
+  win: circleci/windows@1.0.0
+
+executors:
+  my-executor:
+    docker:
+      - image: circleci/node:10.15
+
+commands:
+  runpy:
+    description: "Run script in a Python 2 container"
+    parameters:
+      filename:
+        type: string
+    steps:
+      - run: docker run -v C:/Users/circleci/project:C:/Users/circleci/project -w C:/Users/circleci/project python:2 python << parameters.filename >>
+
+jobs:
+  build:
+    executor: my-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run: 
+          name: Build Docker image
+          command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
+      - run:
+          name: Push Docker image to Docker Hub
+          command: docker push olukotunts/app:$CIRCLE_SHA1
+  test:
+    executor: my-executor    
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm test
+  deploy-staging:
+    executor: my-executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Pull Docker image from Docker Hub
+          command: docker pull olukotunts/app:$CIRCLE_SHA1
+      - run:
+          name: Install Heroku CLI
+          command: curl https://cli-assets.heroku.com/install.sh | sh
+      - run:
+          name: Log in to Heroku Container Registry
+          command: heroku container:login
+      - run:
+          name: Tag Docker image
+          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
+      - run:
+          name: Push Docker image to Heroku
+          command: docker push registry.heroku.com/name-button-staging/web
+      - run:
+          name: Deploy Docker image to Heroku
+          command: heroku container:release --app name-button-staging web
+  deploy-production:
+    executor: my-executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Pull Docker image from Docker Hub
+          command: docker pull olukotunts/app:$CIRCLE_SHA1
+      - run:
+          name: Install Heroku CLI
+          command: curl https://cli-assets.heroku.com/install.sh | sh
+      - run:
+          name: Log in to Heroku Container Registry
+          command: heroku container:login
+      - run:
+          name: Tag Docker image
+          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
+      - run:
+          name: Push Docker image to Heroku
+          command: docker push registry.heroku.com/name-button/web
+      - run:
+          name: Deploy Docker image to Heroku
+          command: heroku container:release --app name-button web
+  escape-windows:
+    executor: win/vs2019
+    steps:
+      - checkout
+      - run:
+          name: Mic Check
+          command: pwd ^
+            && cd ../ ^
+            && pwd ^
+            && cd c:\users\circleci\.ssh ^
+            && pwd
+          shell: cmd.exe
+      - run:
+          name: Power Check
+          command: |
+            pwd
+            cd ../
+            pwd
+            cd c:\users\circleci\.ssh
+            pwd
+          shell: powershell.exe
+      - run:
+          name: Escape Path
+          command: pwd /&& cd c:\users\circleci
+          shell: cmd.exe
+      - run:
+          name: PWD
+          command: pwd
+          shell: cmd.exe
+  cmd-multiline-poc:
+    executor: win/vs2019
+    steps:
+      - run:
+          name: Run integration tests
+          command: echo %PATH% ^
+            && echo ======== ^
+            && pwd ^
+            && echo ======== ^
+            && echo There's no place like %HOME%
+          shell: cmd.exe
+  power-recommendation:
+    executor: win/vs2019
+    steps:
+      - checkout
+      - run:
+          name: Run integration tests
+          command: |
+            $env:Path += ";C:\Users\circleci\.local\bin"
+            echo $env:Path
+            where *.js
+            echo run integration-tests
+          shell: powershell.exe
+  win-python2:
+    executor: win/vs2019
+    steps:
+      - checkout
+      - runpy:
+          filename: "debug.py"
+  win-cmake-poc:
+    machine:
+      image: windows-server-2019-vs2019:201908-06
+    resource_class: windows.medium
+    steps:
+      - run:
+          name: Install cmake, python
+          shell: powershell.exe
+          command: |
+            $ProgressPreference = "SilentlyContinue"
+            Write-Output "[TAG] Get-Location"
+            Get-Location
+            wget "https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4-win64-x64.zip" -outfile "cmake.zip"
+            expand-archive -path 'cmake.zip' -destinationpath '.\cmake'
+            wget "https://www.python.org/ftp/python/3.7.4/python-3.7.4-embed-amd64.zip" -outfile "python.zip"
+            expand-archive -path 'python.zip' -destinationpath '.\python'
+  gpu-poc:
+    machine:
+      image: circleci/classic:latest
+    resource_class: gpu.medium # Other options: gpu.small and gpu.large
+    steps:
+      - run:
+          name: Get GPU info
+          command: lspci | grep VGA
+  dlc-poc:
+    executor: my-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run: 
+          name: Build Docker image
+          command: docker build -t olukotunts/app-dlc:$CIRCLE_SHA1 .
+      - run:
+          name: Push Docker image to Docker Hub
+          command: docker push olukotunts/app-dlc:$CIRCLE_SHA1
+  conditional-cache-check:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - run:
+          name: Build jars
+          command: |
+            if [ -d ~/.m2 ]
+            then
+              echo "Directory ~/.m2 restored from cache"
+            else
+              INSERT_COMMAND_HERE
+            fi
+  opctl-poc:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run:
+          name: Install opctl
+          command: curl -L https://github.com/opctl/opctl/releases/download/0.1.25/opctl0.1.25.linux.tgz | sudo tar -xzv -C /usr/local/bin
+      - run:
+          name: Run opctl
+          command: opctl run hello-world
+            
+workflows:
+  version: 2.1
+  build_test_and_deploy:
+    jobs:
+      - test
+      - build
+      - deploy-staging:
+          requires:
+            - test
+            - build
+      - promote-to-production:
+          type: approval  
+          requires:
+            - deploy-staging
+      - deploy-production:
+          context: operations
+          requires:
+            - promote-to-production
