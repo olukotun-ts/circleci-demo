@@ -1,73 +1,240 @@
-version: 2 # use CircleCI 2.0
-jobs: # basic units of work in a run
-  build: # runs not using Workflows must have a `build` job as entry point
-    docker: # run the steps with Docker
-      # CircleCI Go images available at: https://hub.docker.com/r/circleci/golang/
-      - image: circleci/golang:1.12
-      # CircleCI PostgreSQL images available at: https://hub.docker.com/r/circleci/postgres/
-      - image: circleci/postgres:9.6-alpine
-        environment: # environment variables for primary container
-          POSTGRES_USER: circleci-demo-go
-          POSTGRES_DB: circle_test
+version: 2.1
 
-    parallelism: 2
+orbs:
+  nexus-platform-orb: sonatype/nexus-platform-orb@1.0.24
+  win: circleci/windows@1.0.0
 
-    environment: # environment variables for the build itself
-      TEST_RESULTS: /tmp/test-results # path to where test results will be saved
+executors:
+  my-executor:
+    docker:
+      - image: circleci/node:10.15
 
-    steps: # steps that comprise the `build` job
-      - checkout # check out source code to working directory
-      - run: mkdir -p $TEST_RESULTS # create the test results directory
+commands:
+  runpy:
+    description: "Run script in a Python 2 container"
+    parameters:
+      filename:
+        type: string
+    steps:
+      - run: docker run -v C:/Users/circleci/project:C:/Users/circleci/project -w C:/Users/circleci/project python:2 python << parameters.filename >>
 
-      - restore_cache: # restores saved cache if no changes are detected since last run
-          keys:
-            - go-mod-v4-{{ checksum "go.sum" }}
-
-      #  Wait for Postgres to be ready before proceeding
+jobs:
+  mach-poc:
+    machine: true
+    steps:
+      - checkout
+      - run: echo gecko
+  build:
+    executor: my-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
-          name: Waiting for Postgres to be ready
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
-
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run: 
+          name: Build Docker image
+          command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
       - run:
-          name: Run unit tests
-          environment: # environment variables for the database url and path to migration files
-            CONTACTS_DB_URL: "postgres://circleci-demo-go@localhost:5432/circle_test?sslmode=disable"
-            CONTACTS_DB_MIGRATIONS: /home/circleci/project/db/migrations
-
-          # store the results of our tests in the $TEST_RESULTS directory
+          name: Push Docker image to Docker Hub
+          command: docker push olukotunts/app:$CIRCLE_SHA1
+  test:
+    executor: my-executor    
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm test
+  deploy-staging:
+    executor: my-executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Pull Docker image from Docker Hub
+          command: docker pull olukotunts/app:$CIRCLE_SHA1
+      - run:
+          name: Install Heroku CLI
+          command: curl https://cli-assets.heroku.com/install.sh | sh
+      - run:
+          name: Log in to Heroku Container Registry
+          command: heroku container:login
+      - run:
+          name: Tag Docker image
+          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
+      - run:
+          name: Push Docker image to Heroku
+          command: docker push registry.heroku.com/name-button-staging/web
+      - run:
+          name: Deploy Docker image to Heroku
+          command: heroku container:release --app name-button-staging web
+  deploy-production:
+    executor: my-executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Pull Docker image from Docker Hub
+          command: docker pull olukotunts/app:$CIRCLE_SHA1
+      - run:
+          name: Install Heroku CLI
+          command: curl https://cli-assets.heroku.com/install.sh | sh
+      - run:
+          name: Log in to Heroku Container Registry
+          command: heroku container:login
+      - run:
+          name: Tag Docker image
+          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
+      - run:
+          name: Push Docker image to Heroku
+          command: docker push registry.heroku.com/name-button/web
+      - run:
+          name: Deploy Docker image to Heroku
+          command: heroku container:release --app name-button web
+  escape-windows:
+    executor: win/vs2019
+    steps:
+      - checkout
+      - run:
+          name: Mic Check
+          command: pwd ^
+            && cd ../ ^
+            && pwd ^
+            && cd c:\users\circleci\.ssh ^
+            && pwd
+          shell: cmd.exe
+      - run:
+          name: Power Check
           command: |
-            PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
-            gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
-
-      - run: make # pull and build dependencies for the project
-
-      - save_cache:
-          key: go-mod-v4-{{ checksum "go.sum" }}
-          paths:
-            - "/go/pkg/mod"
-
+            pwd
+            cd ../
+            pwd
+            cd c:\users\circleci\.ssh
+            pwd
+          shell: powershell.exe
       - run:
-          name: Start service
-          environment:
-            CONTACTS_DB_URL: "postgres://circleci-demo-go@localhost:5432/circle_test?sslmode=disable"
-            CONTACTS_DB_MIGRATIONS: /home/circleci/project/db/migrations
-          command: ./workdir/contacts
-          background: true # keep service running and proceed to next step
-
+          name: Escape Path
+          command: pwd /&& cd c:\users\circleci
+          shell: cmd.exe
       - run:
-          name: Validate service is working
+          name: PWD
+          command: pwd
+          shell: cmd.exe
+  cmd-multiline-poc:
+    executor: win/vs2019
+    steps:
+      - run:
+          name: Run integration tests
+          command: echo %PATH% ^
+            && echo ======== ^
+            && pwd ^
+            && echo ======== ^
+            && echo There's no place like %HOME%
+          shell: cmd.exe
+  power-recommendation:
+    executor: win/vs2019
+    steps:
+      - checkout
+      - run:
+          name: Run integration tests
           command: |
-            sleep 5
-            curl --retry 10 --retry-delay 1 -X POST --header "Content-Type: application/json" -d '{"email":"test@example.com","name":"Test User"}' http://localhost:8080/contacts
-
-      - store_artifacts: # upload test summary for display in Artifacts
-          path: /tmp/test-results
-          destination: raw-test-output
-
-      - store_test_results: # upload test results for display in Test Summary
-          path: /tmp/test-results
+            $env:Path += ";C:\Users\circleci\.local\bin"
+            echo $env:Path
+            where *.js
+            echo run integration-tests
+          shell: powershell.exe
+  win-python2:
+    executor: win/vs2019
+    steps:
+      - checkout
+      - runpy:
+          filename: "debug.py"
+  win-cmake-poc:
+    machine:
+      image: windows-server-2019-vs2019:201908-06
+    resource_class: windows.medium
+    steps:
+      - run:
+          name: Install cmake, python
+          shell: powershell.exe
+          command: |
+            $ProgressPreference = "SilentlyContinue"
+            Write-Output "[TAG] Get-Location"
+            Get-Location
+            wget "https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4-win64-x64.zip" -outfile "cmake.zip"
+            expand-archive -path 'cmake.zip' -destinationpath '.\cmake'
+            wget "https://www.python.org/ftp/python/3.7.4/python-3.7.4-embed-amd64.zip" -outfile "python.zip"
+            expand-archive -path 'python.zip' -destinationpath '.\python'
+  gpu-poc:
+    machine:
+      image: circleci/classic:latest
+    resource_class: gpu.medium # Other options: gpu.small and gpu.large
+    steps:
+      - run:
+          name: Get GPU info
+          command: lspci | grep VGA
+  dlc-poc:
+    executor: my-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Log in to Docker Hub
+          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+      - run: 
+          name: Build Docker image
+          command: docker build -t olukotunts/app-dlc:$CIRCLE_SHA1 .
+      - run:
+          name: Push Docker image to Docker Hub
+          command: docker push olukotunts/app-dlc:$CIRCLE_SHA1
+  conditional-cache-check:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - run:
+          name: Build jars
+          command: |
+            if [ -d ~/.m2 ]
+            then
+              echo "Directory ~/.m2 restored from cache"
+            else
+              INSERT_COMMAND_HERE
+            fi
+  opctl-poc:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run:
+          name: Install opctl
+          command: curl -L https://github.com/opctl/opctl/releases/download/0.1.25/opctl0.1.25.linux.tgz | sudo tar -xzv -C /usr/local/bin
+      - run:
+          name: Run opctl
+          command: opctl run hello-world
+            
 workflows:
-  version: 2
-  build-workflow:
+  version: 2.1
+  build_test_and_deploy:
     jobs:
+      - mach-poc
+      - test
       - build
+      - deploy-staging:
+          requires:
+            - test
+            - build
+      - promote-to-production:
+          type: approval  
+          requires:
+            - deploy-staging
+      - deploy-production:
+          context: operations
+          requires:
+            - promote-to-production
