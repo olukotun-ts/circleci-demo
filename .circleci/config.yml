@@ -1,240 +1,634 @@
-version: 2.1
-
-orbs:
-  nexus-platform-orb: sonatype/nexus-platform-orb@1.0.24
-  win: circleci/windows@1.0.0
-
-executors:
-  my-executor:
-    docker:
-      - image: circleci/node:10.15
-
 commands:
-  runpy:
-    description: "Run script in a Python 2 container"
-    parameters:
-      filename:
-        type: string
+  add_ssh:
+    description: Add ssh keys
     steps:
-      - run: docker run -v C:/Users/circleci/project:C:/Users/circleci/project -w C:/Users/circleci/project python:2 python << parameters.filename >>
+    - add_ssh_keys:
+        fingerprints:
+        - 42:80:12:ed:eb:8e:0f:98:3c:dd:95:29:1e:b1:41:9e
+        - e4:f9:bd:b6:1a:5c:76:0b:02:b6:75:2d:60:d4:83:59
+        - 5f:5a:ae:28:aa:b6:88:31:bc:ae:d7:f4:08:a2:ba:12
+        - 67:ae:43:d3:39:ce:29:cc:fa:a6:b5:cf:3c:44:5c:e5
+        - 80:c0:93:b7:8c:81:fd:9d:7f:79:0d:6a:6d:89:3c:b1
+        - 86:df:dd:d3:27:d4:a0:cf:20:2a:a1:f9:f1:a3:03:ae
+        - 02:df:a5:6a:53:9a:f5:5d:bd:a6:fc:b2:db:9b:c9:47
+  build_and_store_content:
+    description: Build and store the content
+    steps:
+    - run:
+        command: |
+          go build cmd/content/download-last-content.go
+          mkdir -p resTmp
+          ISMASTER=true
+          case $CONTENT_DOWNLOAD_MASTER in
+            FALSE) ISMASTER=false ;;
+            False) ISMASTER=false ;;
+            false) ISMASTER=false ;;
+            *) ISMASTER=true ;;
+          esac
+          echo Is master content? $ISMASTER
+          echo Content download branch: $CONTENT_DOWNLOAD_BRANCH
+          echo Content download build: $CONTENT_DOWNLOAD_BUILD
+          ./download-last-content -master=$ISMASTER -branch=$CONTENT_DOWNLOAD_BRANCH -buildnum=$CONTENT_DOWNLOAD_BUILD # Without any parameters it will fetch latest successfully master content
+          ls res/
+          zip resTmp/content.zip res/*
+        name: Build & Zip Content
+    - store_artifacts:
+        destination: content/content.zip
+        path: resTmp/content.zip
+    - store_artifacts:
+        destination: content/content-descriptor.json
+        path: ./res/content-descriptor.json
+    - run:
+        command: |
+          go build cmd/contentpacks/download-core-content-packs.go
+          mkdir -p resTmp
+          ./download-core-content-packs
+          ls res/contentpack-*
+          zip resTmp/core-packs.zip res/contentpack-*
+        name: Download Core Content Packs
+    - store_artifacts:
+        destination: content/core-packs.zip
+        path: resTmp/core-packs.zip
+  build_docker_image:
+    description: Build and store the docker image
+    steps:
+    - run:
+        command: |
+          if [ -n "$SKIP_BUILD_DOCKER_IMAGE" ] || [ -n "$FIPS" ]; then
+            exit 0
+          fi
 
-jobs:
-  mach-poc:
-    machine: true
+          INSTALLER_NAME=demistoserver
+          if  [ -n "${BUILD_FLAVOR}" ]; then
+            INSTALLER_NAME=${BUILD_FLAVOR}
+          fi
+          INSTALLER=$(ls $CIRCLE_ARTIFACTS/$INSTALLER_NAME*.sh)
+          echo $INSTALLER
+          cd dockerutil
+          cp $INSTALLER installer.sh
+          chmod +x installer.sh
+          ls -ll
+
+          IMAGE_TAG=5.5.$CIRCLE_BUILD_NUM
+
+          set +e
+
+          docker build --build-arg INSTALLER=installer.sh -t demisto/platform:$IMAGE_TAG .
+
+          set -e
+
+          docker build --build-arg INSTALLER=installer.sh -t demisto/platform:$IMAGE_TAG .
+
+          docker save -o demisto-docker-image.tar demisto/platform:$IMAGE_TAG
+        name: Build Docker image
+    - store_artifacts:
+        destination: demisto-docker-image.tar
+        path: dockerutil/demisto-docker-image.tar
+  create_build_artifacts:
+    description: Create build artifacts
     steps:
-      - checkout
-      - run: echo gecko
-  build:
-    executor: my-executor
+    - run:
+        command: |
+          # if ./scripts/is_upgrade.sh ; then ./scripts/aws_upgrade_tests/server_get_old_version.sh ; fi
+          #./circleci-utils/lint_and_build/create_build_artifacts.sh # Verified works
+          ./scripts/create_build_artifact.sh
+        name: Create Build Artifacts
+    - store_artifacts:
+        destination: elasticsearch_bolt_migrate
+        path: elasticMigrator
+    - run:
+        command: |-
+          set -o pipefail
+          set -o errexit
+          actualsizecss=$(du -k $CIRCLE_ARTIFACTS/demistoserver-*.sh | cut -f 1)
+          if [ $actualsizecss -ge 800000 ];
+          then
+            echo Installer size is above 800MB, actual size is $actualsizecss kilobytes
+            exit 1
+          else
+            echo Installer size is $actualsizecss kilobytes
+          fi
+        name: Assert installer size
+  get_git:
+    description: Get the specific git version
     steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run: 
-          name: Build Docker image
-          command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
-      - run:
-          name: Push Docker image to Docker Hub
-          command: docker push olukotunts/app:$CIRCLE_SHA1
-  test:
-    executor: my-executor    
+    - run:
+        command: |-
+          DEST=$(which git)
+          DEST=${DEST%/git}
+          echo "Extracting git to $DEST"
+          sudo tar --no-same-owner -zxvf "cmd/packer/res/git-2.21.0-x64/git-2.21.0-x64.tar.gz" -C "$DEST"
+          DEST=$(git --exec-path)
+          echo "Creating git-core dir at $DEST"
+          sudo mkdir -p "$DEST"
+          echo "Extracting git-core to $DEST"
+          sudo tar --no-same-owner -zxvf "cmd/packer/res/git-2.21.0-x64/git-core-2.21.0-x64.tar.gz" -C "$DEST"
+        name: Install specific git version
+  get_golang:
+    description: Get golang from cache / install
     steps:
-      - checkout
-      - run: npm install
-      - run: npm test
-  deploy-staging:
-    executor: my-executor
+    - restore_cache:
+        key: golang-v2-<< pipeline.parameters.golang-version >>
+    - run:
+        command: |
+          if [ ! -f "/tmp/go.tar.gz" ]; then
+            echo "Downloading golang"
+            curl -o /tmp/go.tar.gz https://storage.googleapis.com/golang/go<< pipeline.parameters.golang-version >>.linux-amd64.tar.gz
+          fi
+          sudo rm -rf /usr/local/go
+          sudo tar -C /usr/local -xzf /tmp/go.tar.gz
+          echo "Go Version:"
+          go version
+        name: Download and install Golang
+    - save_cache:
+        key: golang-v2-<< pipeline.parameters.golang-version >>
+        paths:
+        - /tmp/go.tar.gz
+        when: on_success
+  get_gotestsum:
+    description: Get golang from cache / install
     steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run:
-          name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
-      - run:
-          name: Install Heroku CLI
-          command: curl https://cli-assets.heroku.com/install.sh | sh
-      - run:
-          name: Log in to Heroku Container Registry
-          command: heroku container:login
-      - run:
-          name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
-      - run:
-          name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button-staging/web
-      - run:
-          name: Deploy Docker image to Heroku
-          command: heroku container:release --app name-button-staging web
-  deploy-production:
-    executor: my-executor
+    - run:
+        command: |
+          curl -sSL "https://github.com/gotestyourself/gotestsum/releases/download/v<< pipeline.parameters.gotestsum-version >>/gotestsum_<< pipeline.parameters.gotestsum-version >>_linux_amd64.tar.gz" | sudo tar -xz -C /usr/local/bin gotestsum
+        name: Download and install gotestsum
+  go_restore:
+    description: Restores go (mod tidy and vendor)
     steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run:
-          name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
-      - run:
-          name: Install Heroku CLI
-          command: curl https://cli-assets.heroku.com/install.sh | sh
-      - run:
-          name: Log in to Heroku Container Registry
-          command: heroku container:login
-      - run:
-          name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
-      - run:
-          name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button/web
-      - run:
-          name: Deploy Docker image to Heroku
-          command: heroku container:release --app name-button web
-  escape-windows:
-    executor: win/vs2019
+    - restore_cache:
+        key: go-modules-v2-{{ checksum "go.sum" }}
+    - run:
+        command: |-
+          echo "Paths:"
+          echo "PATH = $PATH"
+          echo "GOPATH = $GOPATH"
+          echo
+
+          ls -l /usr/local/go
+          ls -l /usr/local/go/bin
+          echo "Install go modules"
+
+          # clean an build go modules
+          go mod tidy -v
+
+          # build vendor folder from go modules
+          go mod vendor -v
+        name: Go mod
+  init_protoc:
+    description: Install and regenerate protoc
     steps:
-      - checkout
-      - run:
-          name: Mic Check
-          command: pwd ^
-            && cd ../ ^
-            && pwd ^
-            && cd c:\users\circleci\.ssh ^
-            && pwd
-          shell: cmd.exe
-      - run:
-          name: Power Check
-          command: |
-            pwd
-            cd ../
-            pwd
-            cd c:\users\circleci\.ssh
-            pwd
-          shell: powershell.exe
-      - run:
-          name: Escape Path
-          command: pwd /&& cd c:\users\circleci
-          shell: cmd.exe
-      - run:
-          name: PWD
-          command: pwd
-          shell: cmd.exe
-  cmd-multiline-poc:
-    executor: win/vs2019
+    - run:
+        command: |
+          # TODO: move to download phase
+          sudo apt-get --option Acquire::Retries=25 --option Acquire::http::Timeout="45" install -y unzip git wget python3
+          wget https://github.com/google/protobuf/releases/download/v<< pipeline.parameters.protobuf-version >>/protoc-<< pipeline.parameters.protobuf-version >>-linux-x86_64.zip
+          sudo unzip protoc-<< pipeline.parameters.protobuf-version >>-linux-x86_64.zip -d /usr/local
+          rm protoc-<< pipeline.parameters.protobuf-version >>-linux-x86_64.zip
+        name: Install protoc
+    - run:
+        command: |-
+          go get -u golang.org/x/tools/cmd/goimports
+          go get -u github.com/golang/protobuf/protoc-gen-go
+          go generate ./repoDB/remoteRepo/transport/grpc
+          go generate ./repoDB/remoteRepo/transport/grpc
+          goimports -w ./repoDB/remoteRepo/transport/pb/
+        name: Regenerate
+  install_elastic:
+    description: Install elastic
     steps:
-      - run:
-          name: Run integration tests
-          command: echo %PATH% ^
-            && echo ======== ^
-            && pwd ^
-            && echo ======== ^
-            && echo There's no place like %HOME%
-          shell: cmd.exe
-  power-recommendation:
-    executor: win/vs2019
+    - run:
+        command: |-
+          if  [ -n "${USE_ELASTIC}" ]; then
+            echo 'setting up elastic'
+            # TODO: move to download
+            sudo docker pull docker.elastic.co/elasticsearch/elasticsearch:7.4.2
+            mkdir -p elastic-backup
+            chmod 777 elastic-backup
+            sudo docker run -d --name $ELASTICSEARCH -v $SERVER_FOLDER/configs/ci/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -v $SERVER_FOLDER/elastic-backup:/var/lib/elasticsearch/backup -p 9200:9200 -p 9300:9300 -e 'discovery.type=single-node' docker.elastic.co/elasticsearch/elasticsearch:7.4.2
+            # wait for elastic a bit
+            sleep 30
+
+            # validate elastic up
+            curl -X GET "http://localhost:9200/?pretty"
+
+            # change number of default shards
+            curl -X POST "http://localhost:9200/_template/index_defaults" -H "Content-Type: application/json" -d '{
+             "template": "*",
+             "settings": {
+              "number_of_shards": 1,
+              "number_of_replicas": 0,
+              "index.max_result_window": 105000
+             }
+            }'
+            # increase the max shards
+            curl -X PUT "http://localhost:9200/_cluster/settings" -H 'Content-Type: application/json' -d '{
+              "persistent": {
+                "cluster.max_shards_per_node": 5000
+                }
+              }'
+          else
+            echo 'skipping elastic (no USE_ELASTIC flag)'
+          fi
+        name: Install & Run ElasticSearch
+  prepare_environment:
+    description: Install Environment Dependencies
     steps:
-      - checkout
-      - run:
-          name: Run integration tests
-          command: |
-            $env:Path += ";C:\Users\circleci\.local\bin"
-            echo $env:Path
-            where *.js
-            echo run integration-tests
-          shell: powershell.exe
-  win-python2:
-    executor: win/vs2019
+    - update_apt
+    - run:
+        command: |-
+          # TODO: parallel download, sync install
+          echo "Install other go packges"
+          go get github.com/stretchr/testify/assert
+          go get github.com/davecgh/go-spew/spew
+          go get github.com/pmezard/go-difflib/difflib
+          go get gopkg.in/sourcemap.v1
+          go get github.com/google/go-github/github
+          go get github.com/demisto/thirdPartyLicenseCollector
+          go get github.com/axw/gocov/gocov
+          go get github.com/mattn/goveralls
+          go get -u github.com/bxcodec/faker
+          go get -u golang.org/x/lint/golint
+          go get -u golang.org/x/tools/cmd/goimports
+          go get github.com/mitchellh/go-ps
+          echo "Update apt-get and python"
+          sudo apt-get install -y python-dev libxml2-dev libxslt1-dev libxslt-dev zlib1g-dev libxmlsec1 xmlsec1 libxml2-dev libxmlsec1-dev libxmlsec1-openssl
+          echo "Update pip"
+          pip install --upgrade pip
+          echo "Install pytest"
+          pip install pytest==3.8.2
+          echo "Install xmlsec"
+          pip install xmlsec
+          echo "Install stix"
+          pip install stix --upgrade
+          mkdir -p coveragefiles
+          echo "install packeges for instance tool "
+          pip install ansible ansible-runner rsa paramiko boto3 requests
+          echo "Installing aws cli"
+          curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+          unzip -o awscli-bundle.zip
+          sudo ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+          echo "Install chromium"
+          sudo apt-get install -y chromium-browser
+
+          # install java
+          sudo apt-get install openjdk-11-jre
+          java -version
+        name: Prepare Environment
+  prepare_environment_short:
+    description: Install Environment Dependencies (short)
     steps:
-      - checkout
-      - runpy:
-          filename: "debug.py"
-  win-cmake-poc:
-    machine:
-      image: windows-server-2019-vs2019:201908-06
-    resource_class: windows.medium
+    - update_apt
+    - run:
+        command: |-
+          {
+            go get -u golang.org/x/tools/cmd/goimports
+            go get -u github.com/golang/protobuf/protoc-gen-go
+          } &
+          echo "Update apt-get and python"
+          sudo killall -q apt apt-get || true
+          sudo apt-get install -y python-dev libxml2-dev libxslt1-dev libxslt-dev zlib1g-dev libxmlsec1 xmlsec1 libxml2-dev libxmlsec1-dev libxmlsec1-openssl
+          echo "Update pip"
+          pip install --upgrade pip
+          echo "Install pytest"
+          pip install pytest==3.8.2
+          echo "Install xmlsec"
+          pip install xmlsec
+          echo "Install stix"
+          pip install stix --upgrade
+          mkdir -p coveragefiles
+
+          #extra from artifacts build phase
+          sudo aptitude -y install rpm makeself
+        name: Prepare Environment
+  restore_artifacts:
+    description: Restores all the build artifacts
     steps:
-      - run:
-          name: Install cmake, python
-          shell: powershell.exe
-          command: |
-            $ProgressPreference = "SilentlyContinue"
-            Write-Output "[TAG] Get-Location"
-            Get-Location
-            wget "https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4-win64-x64.zip" -outfile "cmake.zip"
-            expand-archive -path 'cmake.zip' -destinationpath '.\cmake'
-            wget "https://www.python.org/ftp/python/3.7.4/python-3.7.4-embed-amd64.zip" -outfile "python.zip"
-            expand-archive -path 'python.zip' -destinationpath '.\python'
-  gpu-poc:
-    machine:
-      image: circleci/classic:latest
-    resource_class: gpu.medium # Other options: gpu.small and gpu.large
+    - attach_workspace:
+        at: .
+  set_env:
+    description: Restores the prepared env (after checkout)
     steps:
-      - run:
-          name: Get GPU info
-          command: lspci | grep VGA
-  dlc-poc:
-    executor: my-executor
+    - run:
+        command: |
+          sudo dhclient
+          echo "ip_resolve=4" >> sudo /etc/yum.conf
+          echo 'export IMPORT_PATH="github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"' >> $BASH_ENV
+          echo 'export SERVER_FOLDER="/home/circleci/.go_workspace/src/$IMPORT_PATH"' >> $BASH_ENV
+          echo 'export CIRCLE_ARTIFACTS="$SERVER_FOLDER/artifacts"' >> $BASH_ENV
+          echo 'export JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64/bin/"' >> $BASH_ENV
+          echo 'export PATH="$GOPATH/bin:$PATH"' >> $BASH_ENV
+          echo 'export GIT_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
+          echo 'export ELASTICSEARCH=elasticsearch' >> $BASH_ENV
+          if [ $CIRCLE_NODE_INDEX == 6 ] ; then
+          echo "forcing elastic config on container 6"
+          echo 'export USE_ELASTIC=true' >> $BASH_ENV
+          fi
+          source $BASH_ENV
+          mkdir -pv $CIRCLE_ARTIFACTS
+          echo "$GO_VERSION" > ~/GO_VERSION.txt
+          echo "$GO_FIPS_VERSION" > ~/GO_FIPS_VERSION.txt
+          cp ./scripts/sshconfig ~/.ssh/config
+          /sbin/sysctl -w net.ipv4.conf.all.forwarding=1
+        name: Setup Environment Variables
+    - run:
+        command: sysctl fs.inotify.max_user_watches=1048576 | tee -a /etc/sysctl.conf
+        name: Extra Settings
+        shell: sudo /bin/bash -eo pipefail
+  setup_license:
+    description: Setup XSOAR License
     steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run: 
-          name: Build Docker image
-          command: docker build -t olukotunts/app-dlc:$CIRCLE_SHA1 .
-      - run:
-          name: Push Docker image to Docker Hub
-          command: docker push olukotunts/app-dlc:$CIRCLE_SHA1
-  conditional-cache-check:
-    machine:
-      image: circleci/classic:latest
+    - run:
+        command: |-
+          wget https://github.com/demisto/thirdPartyLicenseCollector/releases/download/v0.1.4/thirdPartyLicenseCollector_linux_amd64
+          chmod 750 thirdPartyLicenseCollector_linux_amd64
+          ./thirdPartyLicenseCollector_linux_amd64 -go-project=. -out=TEMP_THIRD_PARTY_LICENSE
+        name: Setup License
+  store_build_metadata:
+    description: Store Build Metadata
     steps:
-      - run:
-          name: Build jars
-          command: |
-            if [ -d ~/.m2 ]
-            then
-              echo "Directory ~/.m2 restored from cache"
-            else
-              INSERT_COMMAND_HERE
+    - run:
+        command: echo -n "SERVER_BUILD=$CIRCLE_BUILD_NUM,SERVER_SHA=$GIT_SHA1" >>
+          build_metadata.log
+        name: Store build metadata
+        shell: /bin/bash
+    - store_artifacts:
+        destination: build_metadata.log
+        path: build_metadata.log
+    - store_artifacts:
+        destination: SERVER_THIRD_PARTY_LICENSE
+        path: THIRD_PARTY_LICENSE
+  store_system_metadata:
+    description: Store System Tests Metadata
+    steps:
+    - store_artifacts:
+        destination: system_test_output.log
+        path: system_test_output.log
+    - store_artifacts:
+        destination: installer.log
+        path: installer.log
+    - store_artifacts:
+        destination: /
+        path: artifacts
+    - store_artifacts:
+        destination: signingutil/signDirectory
+        path: signDirectory
+    - store_artifacts:
+        destination: encryptionutil/zipAndEncryptDirectory
+        path: zipAndEncryptDirectory
+  store_unit_metadata:
+    description: Store Unit Tests Metadata
+    steps:
+    - store_artifacts:
+        destination: unit_test_output.log
+        path: unit_test_output.log
+    - store_artifacts:
+        destination: elasticsearch_logs.log
+        path: elasticsearch_logs.log
+    - store_artifacts:
+        destination: coveragefiles
+        path: coveragefiles
+  test_close_sockets:
+    description: Test close web sockets
+    steps:
+    - run:
+        command: |-
+          if !( ./scripts/is_remote.sh || ( ./scripts/is_performance.sh  && [ $CIRCLE_NODE_INDEX = 0 ] )); then
+            set +e
+
+            CLOSE_WAIT_COUNT=$(netstat -nt | grep -i close_ | grep 8443 | wc -l)
+
+            RETRIES=5
+            while ( [ $CLOSE_WAIT_COUNT -gt 0 ] && [ RETRIES > 0 ] ); do
+              echo "Open WS count is ${CLOSE_WAIT_COUNT}. Retrying..."
+              sleep 5
+              RETRIES=$RETRIES-1
+              CLOSE_WAIT_COUNT=$(netstat -nt | grep -i close_ | grep 8443 | wc -l)
+            done
+
+            set -e
+
+            if [ $CLOSE_WAIT_COUNT -gt 0 ]; then
+              printf "Server should have zero sockets in a CLOSE_WAIT state after all tests end, got ${CLOSE_WAIT_COUNT} instead:\n"
+              ALL_CLOSE_WAIT=$(netstat -nt | grep -i close_ | grep 8443)
+              echo "$ALL_CLOSE_WAIT"
+              exit 1
             fi
-  opctl-poc:
-    machine:
-      image: ubuntu-1604:201903-01
+          else
+            ./scripts/aws/check_instances_open_sockets.sh
+          fi
+          exit 0
+        name: Test Close Wait Sockets
+  update_apt:
+    description: Update apt
     steps:
-      - checkout
-      - run:
-          name: Install opctl
-          command: curl -L https://github.com/opctl/opctl/releases/download/0.1.25/opctl0.1.25.linux.tgz | sudo tar -xzv -C /usr/local/bin
-      - run:
-          name: Run opctl
-          command: opctl run hello-world
-            
+    - run:
+        command: |-
+          sudo killall -q apt apt-get || true
+          sudo rm -rf /var/lib/apt/lists/* || true
+          sudo apt-get install apt-transport-https
+          wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+          sudo add-apt-repository "deb https://artifacts.elastic.co/packages/7.x/apt stable main"
+          sudo apt-get update
+        name: Update apt
+executors:
+  big-machine:
+    environment:
+      GIT_SHA1: $CIRCLE_SHA1
+      GO_VERSION: "1.13"
+      GOPATH: /home/circleci/.go_workspace
+      GOROOT: ""
+    machine: true
+    resource_class: large
+    working_directory: /home/circleci/.go_workspace/src/github.com/demisto/server/
+  default-machine:
+    environment:
+      GIT_SHA1: $CIRCLE_SHA1
+      GO_VERSION: "1.13"
+      GOPATH: /home/circleci/.go_workspace
+      GOROOT: ""
+    machine: true
+    working_directory: /home/circleci/.go_workspace/src/github.com/demisto/server/
+jobs:
+  build_and_lint:
+    executor: default-machine
+    parallelism: 1
+    steps:
+    - checkout
+    - set_env
+    - get_golang
+    - go_restore
+    - prepare_environment
+    - init_protoc
+    - save_cache:
+        key: go-modules-v2-{{ checksum "go.sum" }}
+        paths:
+        - /go/pkg/mod
+    - run:
+        command: ./.hooks/pre-commit master
+        name: Run Pre-Commit
+    - save_cache:
+        key: done-v1-save-cov
+        paths: ./scripts/send_coverage.sh
+  build_artifacts:
+    executor: default-machine
+    parallelism: 1
+    steps:
+    - checkout
+    - set_env
+    - get_golang
+    - update_apt
+    - init_protoc
+    - go_restore
+    - setup_license
+    - create_build_artifacts
+    - persist_to_workspace:
+        paths:
+        - ./res
+        - ./server.tar.gz
+        - ./*.sh
+        - ./*.deb
+        - ./*.rpm
+        - ./*.tar
+        - ./*.json
+        - ./*.conf
+        - ./libs
+        - ./dist
+        - ./i18n
+        - ./cmd
+        - ./util
+        - ./conf
+        - ./version/
+        - ./server_linux_amd64
+        - ./server
+        - ./server_race
+        - ./artifacts
+        - ./sensor
+        - ./build_metadata.log
+        - ./ml
+        root: .
+  done:
+    executor: default-machine
+    steps:
+    - restore_cache:
+        key: done-v1-save-cov
+    - deploy:
+        command: |
+          pwd
+          cd "/home/circleci/.go_workspace/src/github.com/demisto/server/"
+          pwd
+          ls -la
+          ls -la ./scripts
+          ./scripts/send_coverage.sh
+        name: Check Coverage
+  run_system_tests:
+    executor: default-machine
+    parallelism: 1
+    steps:
+    - checkout
+    - set_env
+    - get_golang
+    - go_restore
+    - prepare_environment
+    - init_protoc
+    - get_git
+    - build_and_store_content
+    - setup_license
+    - restore_artifacts
+    - build_docker_image
+    - install_elastic
+    - run: mkdir -p server_for_tests
+    - run:
+        command: ./scripts/run_systemtests.sh 2>&1 | tee system_test_output.log
+        name: Run System Tests
+        shell: /bin/bash
+    - store_artifacts:
+        destination: integration-tests-output
+        path: /tmp/test-results
+    - test_close_sockets
+    - run:
+        command: if grep -s -C 15 'FAIL:\|runtime.sigpanic\|test timed out after\|\[build
+          failed\]\|\[setup failed\]\|level=fatal\|FAIL\sgithub\.com\|data is already
+          [de][en]crypted' system_test_output.log ; then exit 1 ; else python ./scripts/awsinstancetool/destroy_env.py
+          ./env_results.json ; fi
+        name: Check System Tests Failure
+    - run:
+        command: if grep -q -s 'flag provided but not defined' system_test_output.log
+          ; then echo "Trying to upgrade from unsupported multi-repo version" ; exit
+          1 ; fi
+        name: Check Upgrade Failure
+    - store_test_results:
+        path: /tmp/test-results
+    - store_system_metadata
+  run_unit_tests:
+    environment:
+      TEST_RESULTS: /tmp/test-results
+    executor: big-machine
+    parallelism: 8
+    steps:
+    - get_golang
+    - checkout
+    - run: mkdir -p $TEST_RESULTS
+    - set_env
+    - go_restore
+    - prepare_environment_short
+    - init_protoc
+    - get_git
+    - build_and_store_content
+    - restore_artifacts
+    - install_elastic
+    - store_build_metadata
+    - get_gotestsum
+    - run: mkdir -p /tmp/ajam && cp -r $CIRCLE_INTERNAL_TASK_DATA/circle-test-results
+        /tmp/ajam
+    - store_artifacts:
+        destination: timing-data-input
+        path: /tmp/ajam
+    - run:
+        command: ./circleci-utils/run_unit_tests/run_unit_tests.sh
+        name: Run unit tests
+        no_output_timeout: 4h
+        shell: /bin/bash
+    - store_artifacts:
+        destination: raw-test-output
+        path: /tmp/test-results
+    - store_test_results:
+        path: /tmp/test-results
+    - store_unit_metadata
+    - run:
+        command: if grep -s -C 15 'FAIL:\|SIGSEGV:\|runtime.sigpanic\|\[build failed\]\|\[setup
+          failed\]\|level=fatal\|FAIL\sgithub\.com\|out of memory\|data is already
+          [de][en]crypted' unit_test_output.log ; then exit 1 ; fi
+        name: Check Test Failure
+    - run:
+        command: if grep -s -C 15 "test timed out after" unit_test_output.log ; then
+          exit 1 ; fi
+        name: Check Test time out
+parameters:
+  golang-version:
+    default: "1.13"
+    type: string
+  gotestsum-version:
+    default: 0.4.1
+    type: string
+  protobuf-version:
+    default: 3.6.1
+    type: string
+version: 2.1
 workflows:
-  version: 2.1
-  build_test_and_deploy:
+  master-workflow:
     jobs:
-      - mach-poc
-      - test
-      - build
-      - deploy-staging:
-          requires:
-            - test
-            - build
-      - promote-to-production:
-          type: approval  
-          requires:
-            - deploy-staging
-      - deploy-production:
-          context: operations
-          requires:
-            - promote-to-production
+    - build_and_lint
+    - build_artifacts
+    - run_system_tests:
+        requires:
+        - build_and_lint
+        - build_artifacts
+    - run_unit_tests:
+        requires:
+        - build_and_lint
+        - build_artifacts
+    - done:
+        requires:
+        - run_system_tests
+        - run_unit_tests
+  version: 2
