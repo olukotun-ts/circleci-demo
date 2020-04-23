@@ -36,7 +36,8 @@ jobs: # basic units of work in a run
 
           # store the results of our tests in the $TEST_RESULTS directory
           command: |
-            PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type="testname")
+            PACKAGE_NAMES=$(go list ./... | circleci tests split)
+            echo $PACKAGE_NAMES
             gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
 
       - run: make # pull and build dependencies for the project
