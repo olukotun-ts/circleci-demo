@@ -19,11 +19,6 @@ commands:
       - run: docker run -v C:/Users/circleci/project:C:/Users/circleci/project -w C:/Users/circleci/project python:2 python << parameters.filename >>
 
 jobs:
-  mach-poc:
-    machine: true
-    steps:
-      - checkout
-      - run: echo gecko
   build:
     executor: my-executor
     steps:
@@ -155,30 +150,6 @@ jobs:
       - checkout
       - runpy:
           filename: "debug.py"
-  win-cmake-poc:
-    machine:
-      image: windows-server-2019-vs2019:201908-06
-    resource_class: windows.medium
-    steps:
-      - run:
-          name: Install cmake, python
-          shell: powershell.exe
-          command: |
-            $ProgressPreference = "SilentlyContinue"
-            Write-Output "[TAG] Get-Location"
-            Get-Location
-            wget "https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4-win64-x64.zip" -outfile "cmake.zip"
-            expand-archive -path 'cmake.zip' -destinationpath '.\cmake'
-            wget "https://www.python.org/ftp/python/3.7.4/python-3.7.4-embed-amd64.zip" -outfile "python.zip"
-            expand-archive -path 'python.zip' -destinationpath '.\python'
-  gpu-poc:
-    machine:
-      image: circleci/classic:latest
-    resource_class: gpu.medium # Other options: gpu.small and gpu.large
-    steps:
-      - run:
-          name: Get GPU info
-          command: lspci | grep VGA
   dlc-poc:
     executor: my-executor
     steps:
@@ -207,23 +178,11 @@ jobs:
             else
               INSERT_COMMAND_HERE
             fi
-  opctl-poc:
-    machine:
-      image: ubuntu-1604:201903-01
-    steps:
-      - checkout
-      - run:
-          name: Install opctl
-          command: curl -L https://github.com/opctl/opctl/releases/download/0.1.25/opctl0.1.25.linux.tgz | sudo tar -xzv -C /usr/local/bin
-      - run:
-          name: Run opctl
-          command: opctl run hello-world
             
 workflows:
   version: 2.1
   build_test_and_deploy:
     jobs:
-      - mach-poc
       - test
       - build
       - deploy-staging:
