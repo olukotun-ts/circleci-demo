@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   nexus-platform-orb: sonatype/nexus-platform-orb@1.0.24
+  node: circleci/node@1.1.6
   win: circleci/windows@1.0.0
 
 executors:
@@ -38,8 +39,13 @@ jobs:
     executor: my-executor    
     steps:
       - checkout
-      - run: npm install
-      - run: npm test
+      - node/with-cache:
+          cache-key: ./.circleci/package.json
+          steps:
+            - run:
+                command: npm install
+                working-directory: ./.circleci
+            - run: npm test
   deploy-staging:
     executor: my-executor
     steps:
