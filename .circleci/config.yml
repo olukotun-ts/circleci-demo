@@ -40,11 +40,16 @@ jobs:
     steps:
       - checkout
       - node/with-cache:
-          cache-key: ./.circleci/package.json
+          cache-key: .circleci/package.json
           steps:
             - run:
+                command: pwd
+                working_directory: .circleci
+            - run:
+                command: echo $HOME
+            - run:
                 command: npm install
-                working-directory: ./.circleci
+                working_directory: ./.circleci
             - run: npm test
   deploy-staging:
     executor: my-executor
