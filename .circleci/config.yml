@@ -36,20 +36,18 @@ jobs:
           name: Push Docker image to Docker Hub
           command: docker push olukotunts/app:$CIRCLE_SHA1
   test:
-    executor: my-executor    
+    executor: node/default
+    working_directory: .circleci
     steps:
       - checkout
       - node/with-cache:
-          cache-key: .circleci/package.json
+          # cache-key: .circleci/package.json
           steps:
             - run:
                 command: pwd
-                working_directory: .circleci
-            - run:
-                command: echo $HOME
+                # working_directory: .circleci
             - run:
                 command: npm install
-                working_directory: ./.circleci
             - run: npm test
   deploy-staging:
     executor: my-executor
