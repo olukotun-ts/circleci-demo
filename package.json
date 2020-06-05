@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --ignore ./public --exec npm start",
     "start": "node server.js",
-    "test": "mocha"
+    "test": "mocha n-queens/spec/*.js"
   },
   "repository": {
     "type": "git",
