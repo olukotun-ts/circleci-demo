@@ -6,7 +6,25 @@
   "scripts": {
     "dev": "nodemon --ignore ./public --exec npm start",
     "start": "node server.js",
-    "test": "karma start vue-dev/test/unit/karma.unit.config.js"
+    "build": "node scripts/build.js",
+    "build:ssr": "npm run build -- web-runtime-cjs,web-server-renderer",
+    "build:weex": "npm run build -- weex",
+    "test": "npm run lint && flow check && npm run test:types && npm run test:cover && npm run test:e2e -- --env phantomjs && npm run test:ssr && npm run test:weex",
+    "test:unit": "karma start vue-dev/test/unit/karma.unit.config.js",
+    "test:cover": "karma start vue-dev/test/unit/karma.cover.config.js",
+    "test:e2e": "npm run build -- web-full-prod,web-server-basic-renderer && node test/e2e/runner.js",
+    "test:weex": "npm run build:weex && jasmine JASMINE_CONFIG_PATH=test/weex/jasmine.js",
+    "test:ssr": "npm run build:ssr && jasmine JASMINE_CONFIG_PATH=test/ssr/jasmine.js",
+    "test:sauce": "npm run sauce -- 0 && npm run sauce -- 1 && npm run sauce -- 2",
+    "test:types": "tsc -p ./types/test/tsconfig.json",
+    "lint": "eslint src scripts test",
+    "flow": "flow check",
+    "sauce": "karma start vue-dev/test/unit/karma.sauce.config.js",
+    "bench:ssr": "npm run build:ssr && node benchmarks/ssr/renderToString.js && node benchmarks/ssr/renderToStream.js",
+    "release": "bash scripts/release.sh",
+    "release:weex": "bash scripts/release-weex.sh",
+    "release:note": "node scripts/gen-release-note.js",
+    "commit": "git-cz"
   },
   "repository": {
     "type": "git",
