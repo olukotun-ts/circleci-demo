@@ -3,7 +3,7 @@
 
 (function() {
 
-  window.BoardView = Backbone.View.extend({
+  BoardView = Backbone.View.extend({
 
     tagName: 'table',
 
