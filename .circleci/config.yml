@@ -159,21 +159,7 @@ jobs:
       - checkout
       - runpy:
           filename: "debug.py"
-  dlc-poc:
-    executor: my-executor
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run: 
-          name: Build Docker image
-          command: docker build -t olukotunts/app-dlc:$CIRCLE_SHA1 .
-      - run:
-          name: Push Docker image to Docker Hub
-          command: docker push olukotunts/app-dlc:$CIRCLE_SHA1
+
   conditional-cache-check:
     machine:
       image: circleci/classic:latest
