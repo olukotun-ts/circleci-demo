@@ -37,7 +37,6 @@ jobs:
           command: docker push olukotunts/app:$CIRCLE_SHA1
   test:
     executor: node/default
-    working_directory: .circleci
     steps:
       - checkout
       - node/with-cache:
