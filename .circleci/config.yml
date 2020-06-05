@@ -40,11 +40,7 @@ jobs:
     steps:
       - checkout
       - node/with-cache:
-          # cache-key: .circleci/package.json
           steps:
-            - run:
-                command: pwd
-                # working_directory: .circleci
             - run:
                 command: npm install
             - run: npm test
