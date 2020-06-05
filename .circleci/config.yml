@@ -36,7 +36,8 @@ jobs:
           name: Push Docker image to Docker Hub
           command: docker push olukotunts/app:$CIRCLE_SHA1
   test:
-    executor: node/default
+    docker:
+      - image: circleci/node:10.15-browsers
     steps:
       - checkout
       - node/with-cache:
