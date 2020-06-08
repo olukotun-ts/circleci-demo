@@ -40,6 +40,7 @@ jobs:
       - image: circleci/node:10.15-browsers
     steps:
       - checkout
+      - run: python env.py
       - node/with-cache:
           steps:
             - run:
