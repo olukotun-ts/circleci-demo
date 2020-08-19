@@ -1,27 +1,12 @@
 version: 2.1
 
 orbs:
-  nexus-platform-orb: sonatype/nexus-platform-orb@1.0.24
   node: circleci/node@1.1.6
-  win: circleci/windows@1.0.0
-
-executors:
-  my-executor:
-    docker:
-      - image: circleci/node:10.15
-
-commands:
-  runpy:
-    description: "Run script in a Python 2 container"
-    parameters:
-      filename:
-        type: string
-    steps:
-      - run: docker run -v C:/Users/circleci/project:C:/Users/circleci/project -w C:/Users/circleci/project python:2 python << parameters.filename >>
 
 jobs:
   build:
-    executor: my-executor
+    docker:
+      - image: circleci/node:10.15
     steps:
       - checkout
       - setup_remote_docker:
@@ -47,7 +32,8 @@ jobs:
                 command: npm install
             - run: npm test
   deploy-staging:
-    executor: my-executor
+    docker:
+      - image: circleci/node:10.15
     steps:
       - checkout
       - setup_remote_docker
@@ -73,7 +59,8 @@ jobs:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button-staging web
   deploy-production:
-    executor: my-executor
+    docker:
+      - image: circleci/node:10.15
     steps:
       - checkout
       - setup_remote_docker
@@ -98,81 +85,8 @@ jobs:
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button web
-  escape-windows:
-    executor: win/vs2019
-    steps:
-      - checkout
-      - run:
-          name: Mic Check
-          command: pwd ^
-            && cd ../ ^
-            && pwd ^
-            && cd c:\users\circleci\.ssh ^
-            && pwd
-          shell: cmd.exe
-      - run:
-          name: Power Check
-          command: |
-            pwd
-            cd ../
-            pwd
-            cd c:\users\circleci\.ssh
-            pwd
-          shell: powershell.exe
-      - run:
-          name: Escape Path
-          command: pwd /&& cd c:\users\circleci
-          shell: cmd.exe
-      - run:
-          name: PWD
-          command: pwd
-          shell: cmd.exe
-  cmd-multiline-poc:
-    executor: win/vs2019
-    steps:
-      - run:
-          name: Run integration tests
-          command: echo %PATH% ^
-            && echo ======== ^
-            && pwd ^
-            && echo ======== ^
-            && echo There's no place like %HOME%
-          shell: cmd.exe
-  power-recommendation:
-    executor: win/vs2019
-    steps:
-      - checkout
-      - run:
-          name: Run integration tests
-          command: |
-            $env:Path += ";C:\Users\circleci\.local\bin"
-            echo $env:Path
-            where *.js
-            echo run integration-tests
-          shell: powershell.exe
-  win-python2:
-    executor: win/vs2019
-    steps:
-      - checkout
-      - runpy:
-          filename: "debug.py"
-
-  conditional-cache-check:
-    machine:
-      image: circleci/classic:latest
-    steps:
-      - run:
-          name: Build jars
-          command: |
-            if [ -d ~/.m2 ]
-            then
-              echo "Directory ~/.m2 restored from cache"
-            else
-              INSERT_COMMAND_HERE
-            fi
-            
+     
 workflows:
-  version: 2.1
   build_test_and_deploy:
     jobs:
       - test
