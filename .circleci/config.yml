@@ -4,6 +4,19 @@ executors:
     docker:
       - image: circleci/node:10.15
 jobs:
+  pr-condition:
+    executor: my-executor
+    steps:
+      - when:
+          condition: [ -z $CIRCLE_PULL_REQUEST ]
+          steps:
+            - run: echo "Build triggered by commit"
+            - run: echo $CIRCLE_PULL_REQUEST
+      - unless:
+          condition: [ -z $CIRCLE_PULL_REQUEST ]
+          steps:
+            - run: echo "Build triggered by PR"
+            - run: echo $CIRCLE_PULL_REQUEST
   build:
     executor: my-executor
     steps:
@@ -25,6 +38,10 @@ jobs:
       - checkout
       - run: npm install
       - run: npm test
+  test-pr:
+    executor: my-executor    
+    steps:
+      - run: echo "Test triggered by pull request"
   deploy-staging:
     executor: my-executor
     steps:
@@ -81,6 +98,7 @@ workflows:
   version: 2.1
   build_test_and_deploy:
     jobs:
+      - pr-condition
       - test
       - build
       - deploy-staging:
@@ -97,3 +115,4 @@ workflows:
       - deploy-production:
           requires:
             - promote-to-production
+
