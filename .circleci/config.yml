@@ -1,111 +1,135 @@
 version: 2.1
-executors:
-  my-executor:
-    docker:
-      - image: circleci/node:10.15
-  android:
-    docker:
-      - image: circleci/android:api-30-ndk
+
+references:
+  build_and_deliver_predev_filter: &build_and_deliver_predev_filter
+    branches:
+      only: /.*/
+
+parameters:
+  run_build_tasks:
+    type: boolean
+    default: false
 
 workflows:
   version: 2.1
-  build_test_and_deploy:
+  build_and_deliver_predev_stateless:
     jobs:
-      - test
-      - build
-      - ndk
-      - deploy-staging:
-          requires:
-            - test
-            - build
+      - checkpoint
+      - check_pr_jira_ticket:
           filters:
-            branches:
-              only: master
-      - promote-to-production:
-          type: approval  
+            <<: *build_and_deliver_predev_filter
+      - test_terraform:
+          filters:
+            <<: *build_and_deliver_predev_filter
+      - test_azure_functions:
+          filters:
+            <<: *build_and_deliver_predev_filter
+      - validate_circleci_config:
+          filters:
+            tags:
+              only:
+                - /predev-.*/
+      - test_preflight:
+          filters:
+            <<: *build_and_deliver_predev_filter
+  
+  build_and_deliver_predev_stateful:
+    # when: << pipeline.parameters.run_release_tasks >>
+    jobs:
+      - go_check:
+          filters:
+            <<: *build_and_deliver_predev_filter
+      - go_sec:
+          filters:
+            <<: *build_and_deliver_predev_filter
+      - bazel_integration:
+          filters:
+            <<: *build_and_deliver_predev_filter
+      - go_coverage:
+          filters:
+            <<: *build_and_deliver_predev_filter
           requires:
-            - deploy-staging
-      - deploy-production:
-          context:
-            - operations
-          requires:
-            - promote-to-production
+            - bazel_integration
+      - test_go_e2e:
+          filters:
+            <<: *build_and_deliver_predev_filter
+      - test_cmd_cp-ui:
+          filters:
+            <<: *build_and_deliver_predev_filter
+      # - test_go_integration_cp-ns TODO: uncomment when fixed.
+      - cypress/install:
+          name: "cp-ui functional test setup"
+          build: GENERATE_SOURCEMAP=false npm run build --prefix cmd/cp-ui
+          working_directory: cmd/cp-ui
+          cache-key: >-
+            cache-{{ arch }}-{{ .Branch }}-{{ checksum "cmd/cp-ui/package-lock.json"
+            }}
+          filters:
+            <<: *build_and_deliver_predev_filter
+      # Use matrix jobs to create cp_ui_functional_tests
+      - cp_ui_functional_test:
+          matrix:
+            parameters:
+              testToRun: ["analytics", "app", "auth", "backups", "billing", "buckets", "clouds", "clusters", "confirmEmail", "dashboard", "documents", "flyouts","indexes", "invitations", "mainNavigation", "projects", "queryWorkbench", "session", "support", "tenants", "users", "services", "clusterWizard"]
+          # requires:
+          #   - "cp-ui functional test setup"
+          filters:
+            <<: *build_and_deliver_predev_filter
 
 jobs:
-  build:
-    executor: my-executor
+  checkpoint:
+    machine: true
     steps:
-      - checkout
-      - setup_remote_docker
-      - run: echo $CIRCLE_PULL_REQUESTS
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run: 
-          name: Build Docker image
-          command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
-      - run:
-          name: Push Docker image to Docker Hub
-          command: docker push olukotunts/app:$CIRCLE_SHA1
-  test:
-    executor: my-executor    
+      - run: echo gecko
+  check_pr_jira_ticket:
+    machine: true
     steps:
-      - checkout
-      - run: npm install
-      - run: npm test
-  deploy-staging:
-    executor: my-executor
+      - run: echo gecko
+  test_terraform:
+    machine: true
     steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run:
-          name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
-      - run:
-          name: Install Heroku CLI
-          command: curl https://cli-assets.heroku.com/install.sh | sh
-      - run:
-          name: Log in to Heroku Container Registry
-          command: heroku container:login
-      - run:
-          name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
-      - run:
-          name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button-staging/web
-      - run:
-          name: Deploy Docker image to Heroku
-          command: heroku container:release --app name-button-staging web
-  deploy-production:
-    executor: my-executor
+      - run: echo gecko
+  test_azure_functions:
+    machine: true
     steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run:
-          name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
-      - run:
-          name: Install Heroku CLI
-          command: curl https://cli-assets.heroku.com/install.sh | sh
-      - run:
-          name: Log in to Heroku Container Registry
-          command: heroku container:login
-      - run:
-          name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
-      - run:
-          name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button/web
-      - run:
-          name: Deploy Docker image to Heroku
-          command: heroku container:release --app name-button web
-  ndk:
-    executor: android    
+      - run: echo gecko
+  validate_circleci_config:
+    machine: true
     steps:
-      - checkout
+      - run: echo gecko
+  test_preflight:
+    machine: true
+    steps:
+      - run: echo gecko
+  go_check:
+    machine: true
+    steps:
+      - run: echo gecko
+  go_sec:
+    machine: true
+    steps:
+      - run: echo gecko
+  bazel_integration:
+    machine: true
+    steps:
+      - run: echo gecko
+  go_coverage:
+    machine: true
+    steps:
+      - run: echo gecko
+  test_go_e2e:
+    machine: true
+    steps:
+      - run: echo gecko
+  test_cmd_cp-ui:
+    machine: true
+    steps:
+      - run: echo gecko
+  cp_ui_functional_test:
+    machine: true
+    parameters:
+      testToRun:
+        type: string
+        default: "*"
+    steps:
+      - run: echo << parameters.testToRun >>
