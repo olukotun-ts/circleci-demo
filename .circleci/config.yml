@@ -84,8 +84,10 @@ workflows:
 
 jobs:
   checkpoint:
-    machine: true
+    docker:
+      - image: cimg/base:2020.10
     steps:
+      - checkout
       - run:
           name: Release Check
           command: |
@@ -108,59 +110,72 @@ jobs:
               }' https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline
             fi
 
-  check_pr_jira_ticket:
-    machine: true
+  check_pr_jira_t
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
   test_terraform:
-    machine: true
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
-  test_azure_functions:
-    machine: true
+  test_azure_func
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
-  validate_circleci_config:
-    machine: true
+  validate_circle
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
   test_preflight:
-    machine: true
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
   go_check:
-    machine: true
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
   go_sec:
-    machine: true
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
-  bazel_integration:
-    machine: true
+  bazel_integrati
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
   go_coverage:
-    machine: true
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
   test_go_e2e:
-    machine: true
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
   test_cmd_cp-ui:
-    machine: true
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
-  cp_ui_functional_test:
-    machine: true
+  cp_ui_functiona
+    docker:
+      - image: cimg/base:2020.10
     parameters:
       testToRun:
         type: string
         default: "*"
     steps:
       - run: echo << parameters.testToRun >>
-  mock_cypress_orb:
-    machine: true
+  mock_cypress_or
+    docker:
+      - image: cimg/base:2020.10
     steps:
       - run: echo gecko
