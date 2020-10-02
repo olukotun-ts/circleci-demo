@@ -6,15 +6,26 @@ references:
       only: /.*/
 
 parameters:
+  not_cleared_for_takeoff:
+    type: boolean
+    default: true
   run_build_tasks:
+    type: boolean
+    default: false
+  run_release_tasks:
     type: boolean
     default: false
 
 workflows:
   version: 2.1
-  build_and_deliver_predev_stateless:
+  mission_control:
+    when: << pipeline.parameters.not_cleared_for_takeoff >>
     jobs:
       - checkpoint
+  
+  build_and_deliver_predev-is_release_commit:
+    when: << pipeline.parameters.run_release_tasks >>
+    jobs:
       - check_pr_jira_ticket:
           filters:
             <<: *build_and_deliver_predev_filter
@@ -33,8 +44,8 @@ workflows:
           filters:
             <<: *build_and_deliver_predev_filter
   
-  build_and_deliver_predev_stateful:
-    # when: << pipeline.parameters.run_release_tasks >>
+  build_and_deliver_predev-not_release_commit:
+    when: << pipeline.parameters.run_build_tasks >>
     jobs:
       - go_check:
           filters:
@@ -75,7 +86,33 @@ jobs:
   checkpoint:
     machine: true
     steps:
-      - run: echo gecko
+      - run: 
+          name: Get pipelines
+          command: |
+            curl -u ${CIRCLECI_TOKEN}: 
+
+      - run:
+          name: Release Check
+          command: |
+            if git log -1 --pretty=%B | grep ".*\#release_commit.*";
+            then
+              echo "I'm a release commit - Run release tasks"
+              curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" -d '{
+                "parameters": {
+                  "run_release_tasks": true,
+                  "not_cleared_for_takeoff": false
+                }
+              }' https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline
+            else
+              echo "I'm not a release commit - Run build tasks"
+              curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" -d '{
+                "parameters": {
+                  "run_build_tasks": true,
+                  "not_cleared_for_takeoff": false
+                }
+              }' https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline
+            fi
+
   check_pr_jira_ticket:
     machine: true
     steps:
