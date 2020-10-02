@@ -57,22 +57,17 @@ workflows:
           filters:
             <<: *build_and_deliver_predev_filter
       # - test_go_integration_cp-ns TODO: uncomment when fixed.
-      # - cypress/install:
-      #     name: "cp-ui functional test setup"
-      #     build: GENERATE_SOURCEMAP=false npm run build --prefix cmd/cp-ui
-      #     working_directory: cmd/cp-ui
-      #     cache-key: >-
-      #       cache-{{ arch }}-{{ .Branch }}-{{ checksum "cmd/cp-ui/package-lock.json"
-      #       }}
-      #     filters:
-      #       <<: *build_and_deliver_predev_filter
+      - cypress/install:
+          name: "cp-ui functional test setup"
+          filters:
+            <<: *build_and_deliver_predev_filter
       # Use matrix jobs to create cp_ui_functional_tests
       - cp_ui_functional_test:
           matrix:
             parameters:
               testToRun: ["analytics", "app", "auth", "backups", "billing", "buckets", "clouds", "clusters", "confirmEmail", "dashboard", "documents", "flyouts","indexes", "invitations", "mainNavigation", "projects", "queryWorkbench", "session", "support", "tenants", "users", "services", "clusterWizard"]
-          # requires:
-          #   - "cp-ui functional test setup"
+          requires:
+            - "cp-ui functional test setup"
           filters:
             <<: *build_and_deliver_predev_filter
 
@@ -133,3 +128,8 @@ jobs:
         default: "*"
     steps:
       - run: echo << parameters.testToRun >>
+  cypress/install:
+    machine: true
+    steps:
+      - run: echo gecko
+      
