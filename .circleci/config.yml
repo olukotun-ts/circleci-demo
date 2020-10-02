@@ -28,7 +28,7 @@ workflows:
     jobs:
       - checkpoint
   
-  build_and_deliver_predev-is_release_commit:
+  build_and_deliver_predev-release_tasks:
     when: << pipeline.parameters.run_release_tasks >>
     jobs:
       - check_pr_jira_ticket:
@@ -49,7 +49,7 @@ workflows:
           filters:
             <<: *build_and_deliver_predev_filter
   
-  build_and_deliver_predev-not_release_commit:
+  build_and_deliver_predev-build_tasks:
     when: << pipeline.parameters.run_build_tasks >>
     jobs:
       - go_check:
