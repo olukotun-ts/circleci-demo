@@ -5,7 +5,10 @@ references:
     branches:
       only: /.*/
   default_job_definition: &default_job_definition
-    <<: *default_job_definition
+    docker:
+      - image: cimg/base:2020.10
+    steps:
+      - run: echo gecko
 
 parameters:
   not_cleared_for_takeoff:
@@ -114,15 +117,7 @@ jobs:
                 }
               }' https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline
             fi
-  cp_ui_functional_test:
-    docker:
-      - image: cimg/base:2020.10
-    parameters:
-      testToRun:
-        type: string
-        default: "*"
-    steps:
-      - run: echo << parameters.testToRun >>
+
   check_pr_jira_ticket:
     <<: *default_job_definition
   test_terraform:
@@ -145,5 +140,14 @@ jobs:
     <<: *default_job_definition
   test_cmd_cp-ui:
     <<: *default_job_definition
+  cp_ui_functional_test:
+    docker:
+      - image: cimg/base:2020.10
+    parameters:
+      testToRun:
+        type: string
+        default: "*"
+    steps:
+      - run: echo << parameters.testToRun >>
   mock_cypress_orb:
     <<: *default_job_definition
