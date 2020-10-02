@@ -110,7 +110,7 @@ jobs:
               }' https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline
             fi
 
-  check_pr_jira_t
+  check_pr_jira_ticket:
     docker:
       - image: cimg/base:2020.10
     steps:
@@ -120,12 +120,12 @@ jobs:
       - image: cimg/base:2020.10
     steps:
       - run: echo gecko
-  test_azure_func
+  test_azure_functions:
     docker:
       - image: cimg/base:2020.10
     steps:
       - run: echo gecko
-  validate_circle
+  validate_circleci_config:
     docker:
       - image: cimg/base:2020.10
     steps:
@@ -145,7 +145,7 @@ jobs:
       - image: cimg/base:2020.10
     steps:
       - run: echo gecko
-  bazel_integrati
+  bazel_integration:
     docker:
       - image: cimg/base:2020.10
     steps:
@@ -165,7 +165,7 @@ jobs:
       - image: cimg/base:2020.10
     steps:
       - run: echo gecko
-  cp_ui_functiona
+  cp_ui_functional_test:
     docker:
       - image: cimg/base:2020.10
     parameters:
@@ -174,7 +174,7 @@ jobs:
         default: "*"
     steps:
       - run: echo << parameters.testToRun >>
-  mock_cypress_or
+  mock_cypress_orb:
     docker:
       - image: cimg/base:2020.10
     steps:
