@@ -86,11 +86,6 @@ jobs:
   checkpoint:
     machine: true
     steps:
-      - run: 
-          name: Get pipelines
-          command: |
-            curl -u ${CIRCLECI_TOKEN}: 
-
       - run:
           name: Release Check
           command: |
