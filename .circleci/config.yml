@@ -57,7 +57,7 @@ workflows:
           filters:
             <<: *build_and_deliver_predev_filter
       # - test_go_integration_cp-ns TODO: uncomment when fixed.
-      - cypress/install:
+      - mock_cypress/install:
           name: "cp-ui functional test setup"
           filters:
             <<: *build_and_deliver_predev_filter
@@ -128,8 +128,7 @@ jobs:
         default: "*"
     steps:
       - run: echo << parameters.testToRun >>
-  cypress/install:
+  mock_cypress/install:
     machine: true
     steps:
       - run: echo gecko
-      
