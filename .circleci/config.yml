@@ -95,7 +95,7 @@ jobs:
             then
               echo "I'm a release commit - Run release tasks"
               curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" -d '{
-                "branch": ${CIRCLE_BRANCH},
+                "branch": "'"${CIRCLE_BRANCH}"'",
                 "parameters": {
                   "run_release_tasks": true,
                   "not_cleared_for_takeoff": false
@@ -104,7 +104,7 @@ jobs:
             else
               echo "I'm not a release commit - Run build tasks"
               curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" -d '{
-                "branch": ${CIRCLE_BRANCH},
+                "branch": "'"${CIRCLE_BRANCH}"'",
                 "parameters": {
                   "run_build_tasks": true,
                   "not_cleared_for_takeoff": false
