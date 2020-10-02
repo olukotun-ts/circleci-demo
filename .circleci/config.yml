@@ -4,6 +4,8 @@ references:
   build_and_deliver_predev_filter: &build_and_deliver_predev_filter
     branches:
       only: /.*/
+  default_job_definition: &default_job_definition
+    <<: *default_job_definition
 
 parameters:
   not_cleared_for_takeoff:
@@ -97,6 +99,7 @@ jobs:
               curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" -d '{
                 "branch": "'"${CIRCLE_BRANCH}"'",
                 "parameters": {
+                  "run_build_tasks": true,
                   "run_release_tasks": true,
                   "not_cleared_for_takeoff": false
                 }
@@ -111,62 +114,6 @@ jobs:
                 }
               }' https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline
             fi
-
-  check_pr_jira_ticket:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
-  test_terraform:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
-  test_azure_functions:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
-  validate_circleci_config:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
-  test_preflight:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
-  go_check:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
-  go_sec:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
-  bazel_integration:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
-  go_coverage:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
-  test_go_e2e:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
-  test_cmd_cp-ui:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
   cp_ui_functional_test:
     docker:
       - image: cimg/base:2020.10
@@ -176,8 +123,27 @@ jobs:
         default: "*"
     steps:
       - run: echo << parameters.testToRun >>
+  check_pr_jira_ticket:
+    <<: *default_job_definition
+  test_terraform:
+    <<: *default_job_definition
+  test_azure_functions:
+    <<: *default_job_definition
+  validate_circleci_config:
+    <<: *default_job_definition
+  test_preflight:
+    <<: *default_job_definition
+  go_check:
+    <<: *default_job_definition
+  go_sec:
+    <<: *default_job_definition
+  bazel_integration:
+    <<: *default_job_definition
+  go_coverage:
+    <<: *default_job_definition
+  test_go_e2e:
+    <<: *default_job_definition
+  test_cmd_cp-ui:
+    <<: *default_job_definition
   mock_cypress_orb:
-    docker:
-      - image: cimg/base:2020.10
-    steps:
-      - run: echo gecko
+    <<: *default_job_definition
