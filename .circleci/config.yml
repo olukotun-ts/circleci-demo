@@ -85,7 +85,7 @@ workflows:
       - cp_ui_functional_test:
           matrix:
             parameters:
-              testToRun: ["analytics", "app", "auth", "backups", "billing", "buckets", "clouds", "clusters", "confirmEmail", "dashboard", "documents", "flyouts","indexes", "invitations", "mainNavigation", "projects", "queryWorkbench", "session", "support", "tenants", "users", "services", "clusterWizard"]
+              testToRun: ["analytics", "auth", "billing", "clusters", "services"]
           requires:
             - "cp-ui functional test setup"
           filters:
