@@ -48,7 +48,7 @@ workflows:
       - test_preflight:
           filters:
             <<: *build_and_deliver_predev_filter
-  
+
   build_and_deliver_predev-build_tasks:
     when: << pipeline.parameters.run_build_tasks >>
     jobs:
@@ -72,12 +72,10 @@ workflows:
       - test_cmd_cp-ui:
           filters:
             <<: *build_and_deliver_predev_filter
-      # - test_go_integration_cp-ns TODO: uncomment when fixed.
       - mock_cypress_orb:
           name: "cp-ui functional test setup"
           filters:
             <<: *build_and_deliver_predev_filter
-      # Use matrix jobs to create cp_ui_functional_tests
       - cp_ui_functional_test:
           matrix:
             parameters:
@@ -86,6 +84,13 @@ workflows:
             - "cp-ui functional test setup"
           filters:
             <<: *build_and_deliver_predev_filter
+
+  hot_fix:
+    jobs:
+      - appease_the_gods:
+          filters:
+            branches:
+              only: /hot-fix-.+/
 
 jobs:
   checkpoint:
@@ -117,7 +122,15 @@ jobs:
                 }
               }' https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline
             fi
-
+  cp_ui_functional_test:
+    docker:
+      - image: cimg/base:2020.10
+    parameters:
+      testToRun:
+        type: string
+        default: "*"
+    steps:
+      - run: echo << parameters.testToRun >>
   check_pr_jira_ticket:
     <<: *default_job_definition
   test_terraform:
@@ -140,15 +153,7 @@ jobs:
     <<: *default_job_definition
   test_cmd_cp-ui:
     <<: *default_job_definition
-  cp_ui_functional_test:
-    docker:
-      - image: cimg/base:2020.10
-    parameters:
-      testToRun:
-        type: string
-        default: "*"
-    steps:
-      - run: echo << parameters.testToRun >>
   mock_cypress_orb:
     <<: *default_job_definition
- 
+  appease_the_gods:
+    <<: *default_job_definition
