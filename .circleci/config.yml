@@ -28,7 +28,7 @@ parameters:
   run_release_tasks:
     type: boolean
     default: false
-s
+
 workflows:
   version: 2.1
   mission_control:
