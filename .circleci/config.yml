@@ -4,7 +4,7 @@
 # a `release` workflow that runs only for #release_commits
 # a `hot-fix` workflow that runs only for hot-fix branches
 
-# this should build
+# this should release
 
 version: 2.1
 
@@ -28,7 +28,7 @@ parameters:
   run_release_tasks:
     type: boolean
     default: false
-
+s
 workflows:
   version: 2.1
   mission_control:
