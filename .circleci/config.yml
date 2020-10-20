@@ -1,3 +1,9 @@
+# Needs
+# #####
+# a `build` workflow that runs always
+# a `release` workflow that runs only for #release_commits
+# a `hot-fix` workflow that runs only for hot-fix branches
+
 version: 2.1
 
 references:
