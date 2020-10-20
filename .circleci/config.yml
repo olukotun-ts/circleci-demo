@@ -1,5 +1,5 @@
-# Needs
-# #####
+# Deliverables
+# ############
 # a `build` workflow that runs always
 # a `release` workflow that runs only for #release_commits
 # a `hot-fix` workflow that runs only for hot-fix branches
@@ -92,6 +92,7 @@ workflows:
             <<: *build_and_deliver_predev_filter
 
   hot_fix:
+    when: << pipeline.parameters.not_cleared_for_takeoff >>
     jobs:
       - appease_the_gods:
           filters:
