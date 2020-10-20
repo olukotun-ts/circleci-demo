@@ -4,6 +4,8 @@
 # a `release` workflow that runs only for #release_commits
 # a `hot-fix` workflow that runs only for hot-fix branches
 
+# this should build
+
 version: 2.1
 
 references:
