@@ -28,6 +28,7 @@ workflows:
 jobs:
   build:
     executor: my-executor
+    resource_class: large   # Implements a machine with 4 vCPUs and 8GB of ram.
     steps:
       - checkout
       - setup_remote_docker
