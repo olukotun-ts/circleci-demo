@@ -31,7 +31,8 @@ jobs:
     resource_class: large   # Implements a machine with 4 vCPUs and 8GB of ram.
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run: echo $CIRCLE_PULL_REQUESTS
       - run:
           name: Log in to Docker Hub
