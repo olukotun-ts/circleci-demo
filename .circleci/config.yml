@@ -1,13 +1,6 @@
 version: 2.1
-executors:  # CircleCI supports Docker, Linux, Windows, and macOS
-  my-executor:
-    docker:   
-      - image: circleci/node:10.15
-  android:
-    docker:
-      - image: circleci/android:api-30-ndk
 
-workflows:  # Collection of jobs orchestrated to run in a specific order
+workflows:  # Collection of jobs orchestrated to run in a specific order.
   version: 2.1
   build_test_and_deploy:
     jobs:
@@ -25,9 +18,9 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
           requires:
             - promote-to-production
 
-jobs:  # Collection of steps/commands
+jobs:  # Collection of steps/commands.
   build:
-    docker:
+    docker:  # CircleCI supports Docker, Linux, Windows, and macOS.
       - image: circleci/node:10.15
         auth:
           username: $DOCKER_USER
