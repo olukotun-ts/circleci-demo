@@ -18,7 +18,7 @@ workflows:  # Collection of jobs orchestrated to run in a specific order.
           requires:
             - promote-to-production
 
-jobs:  # Collection of steps/commands.
+jobs:  # Collection of commands needed to accomplish a specific task.
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS.
       - image: circleci/node:10.15
