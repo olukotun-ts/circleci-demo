@@ -13,7 +13,6 @@ workflows:
     jobs:
       - test
       - build
-      - ndk
       - deploy-staging:
           requires:
             - test
@@ -105,7 +104,3 @@ jobs:
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button web
-  ndk:
-    executor: android    
-    steps:
-      - checkout
