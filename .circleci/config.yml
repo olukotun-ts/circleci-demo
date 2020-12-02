@@ -29,9 +29,9 @@ jobs:  # Collection of steps/commands
   build:
     docker:
       - image: circleci/node:10.15
-      auth:
-        username: $DOCKER_USER
-        password: $DOCKER_PASS
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
     resource_class: large  # Implements a machine with 4 vCPUs and 8GB of ram.
     steps:
       - checkout
@@ -49,9 +49,9 @@ jobs:  # Collection of steps/commands
   test:
     docker:
       - image: circleci/node:10.15
-      auth:
-        username: $DOCKER_USER
-        password: $DOCKER_PASS    
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS    
     steps:
       - checkout
       - run: npm install
@@ -59,9 +59,9 @@ jobs:  # Collection of steps/commands
   deploy-staging:
     docker:
       - image: circleci/node:10.15
-      auth:
-        username: $DOCKER_USER
-        password: $DOCKER_PASS
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
     steps:
       - checkout
       - setup_remote_docker
@@ -89,9 +89,9 @@ jobs:  # Collection of steps/commands
   deploy-production:
     docker:
       - image: circleci/node:10.15
-      auth:
-        username: $DOCKER_USER
-        password: $DOCKER_PASS
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
     steps:
       - checkout
       - setup_remote_docker
