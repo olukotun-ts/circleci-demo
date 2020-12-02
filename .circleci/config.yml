@@ -1,13 +1,13 @@
 version: 2.1
-executors:
+executors:  # CircleCI supports Docker, Linux, Windows, and macOS
   my-executor:
-    docker:
+    docker:   
       - image: circleci/node:10.15
   android:
     docker:
       - image: circleci/android:api-30-ndk
 
-workflows:
+workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
   build_test_and_deploy:
     jobs:
@@ -25,14 +25,18 @@ workflows:
           requires:
             - promote-to-production
 
-jobs:
+jobs:  # Collection of steps/commands
   build:
-    executor: my-executor
-    resource_class: large   # Implements a machine with 4 vCPUs and 8GB of ram.
+    docker:
+      - image: circleci/node:10.15
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PASS
+    resource_class: large  # Implements a machine with 4 vCPUs and 8GB of ram.
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true
+          docker_layer_caching: true  # DLC will cache layers and avoid rebuilding unchanged ones.
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
@@ -43,13 +47,21 @@ jobs:
           name: Push Docker image to Docker Hub
           command: docker push olukotunts/app:$CIRCLE_SHA1
   test:
-    executor: my-executor    
+    docker:
+      - image: circleci/node:10.15
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PASS    
     steps:
       - checkout
       - run: npm install
       - run: npm test
   deploy-staging:
-    executor: my-executor
+    docker:
+      - image: circleci/node:10.15
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PASS
     steps:
       - checkout
       - setup_remote_docker
@@ -75,7 +87,11 @@ jobs:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button-staging web
   deploy-production:
-    executor: my-executor
+    docker:
+      - image: circleci/node:10.15
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PASS
     steps:
       - checkout
       - setup_remote_docker
