@@ -10,13 +10,13 @@ workflows:  # Collection of jobs orchestrated to run in a specific order.
           requires:
             - test
             - build
-      - promote-to-production:
+      - promote-to-prod:
           type: approval  
           requires:
             - deploy-staging
-      - deploy-production:
+      - deploy-prod:
           requires:
-            - promote-to-production
+            - promote-to-prod
 
 jobs:  # Collection of commands needed to accomplish a specific task.
   build:
@@ -79,7 +79,7 @@ jobs:  # Collection of commands needed to accomplish a specific task.
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button-staging web
-  deploy-production:
+  deploy-prod:
     docker:
       - image: circleci/node:10.15
         auth:
