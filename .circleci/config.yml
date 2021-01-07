@@ -1,6 +1,6 @@
 version: 2.1
 
-workflows:  # Collection of jobs orchestrated to run in a specific order.
+workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
   build_test_and_deploy:
     jobs:
@@ -11,25 +11,25 @@ workflows:  # Collection of jobs orchestrated to run in a specific order.
             - test
             - build
       - promote-to-prod:
-          type: approval  
+          type: approval
           requires:
             - deploy-staging
       - deploy-prod:
           requires:
             - promote-to-prod
 
-jobs:  # Collection of commands needed to accomplish a specific task.
+jobs:  # Collection of commands needed to accomplish a specific task
   build:
-    docker:  # CircleCI supports Docker, Linux, Windows, and macOS.
+    docker:  # CircleCI supports Docker, Linux, Windows, and macOS
       - image: circleci/node:10.15
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
-    resource_class: large  # Implements a machine with 4 vCPUs and 8GB of ram.
+    resource_class: large  # Options range from small to 2xlarge+
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true  # DLC will cache layers and avoid rebuilding unchanged ones.
+          docker_layer_caching: true  # DLC will cache layers and avoid rebuilding unchanged ones
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
