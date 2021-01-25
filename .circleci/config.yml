@@ -15,8 +15,8 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
       #     requires:
       #       - deploy-staging
       # - deploy-prod:
-          requires:
-            - promote-to-prod
+      #     requires:
+      #       - promote-to-prod
 
 jobs:  # Collection of commands needed to accomplish a specific task
   build:
@@ -54,7 +54,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
           PARENT_BRANCH=$(git show-branch | sed "s/].*//" | grep "\*" | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//")
           echo $CHILD_BRANCH
           echo $PARENT_BRANCH
-
+          
   deploy-staging:
     docker:
       - image: circleci/node:10.15
