@@ -49,9 +49,11 @@ jobs:  # Collection of commands needed to accomplish a specific task
       - checkout
       # - run: npm install
       # - run: npm test
+      - run: git branch -l
       - run: git fetch --all
-      - run: echo git rev-parse --abbrev-ref HEAD
-      - run: echo git show-branch | sed "s/].*//" | grep "\*" | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//"
+      - run: git branch -l
+      - run: git rev-parse --abbrev-ref HEAD
+      - run: git show-branch | sed "s/].*//" | grep "\*" | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//"
           
   deploy-staging:
     docker:
