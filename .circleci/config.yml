@@ -49,12 +49,16 @@ jobs:  # Collection of commands needed to accomplish a specific task
       - checkout
       # - run: npm install
       # - run: npm test
-      - run: git branch -l
-      - run: git checkout master
-      - run: git branch -l
-      - run: git rev-parse --abbrev-ref HEAD
-      - run: git show-branch | sed "s/].*//" | grep "\*" | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//"
-          
+      - run: for remote in `git branch -r | grep -v /HEAD`; do git checkout --track $remote ; done
+      - run: |
+          CHILD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          PARENT_BRANCH=$(git show-branch | sed "s/].*//" | grep "\*" | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//")
+          if [ "$CHILD_BRANCH" = "$PARENT_BRANCH" ]; then
+            echo "Can't merge branch into itself! Skipping."
+            exit 0
+          fi
+      - run: echo $CHILD_BRANCH
+      - run: echo $PARENT_BRANCH
   deploy-staging:
     docker:
       - image: circleci/node:10.15
