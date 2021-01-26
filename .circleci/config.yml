@@ -49,7 +49,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
       - checkout
       # - run: npm install
       # - run: npm test
-      - run: for remote in `git branch -r | grep -v /HEAD`; do git checkout --track $remote ; done
+      - run: for remote in `git branch -r | grep -vE "HEAD|master"`; do git branch --track $remote; done
       - run: |
           CHILD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
           PARENT_BRANCH=$(git show-branch | sed "s/].*//" | grep "\*" | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//")
