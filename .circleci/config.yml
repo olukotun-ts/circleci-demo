@@ -59,8 +59,8 @@ jobs:  # Collection of commands needed to accomplish a specific task
             echo "Can't merge branch into itself! Skipping."
             exit 0
           fi
-      - run: echo $CHILD_BRANCH
-      - run: echo $PARENT_BRANCH
+          echo CHILD_BRANCH: $CHILD_BRANCH
+          echo PARENT_BRANCH: $PARENT_BRANCH
   deploy-staging:
     docker:
       - image: circleci/node:10.15
