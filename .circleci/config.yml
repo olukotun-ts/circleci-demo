@@ -5,18 +5,18 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
   build_test_and_deploy:
     jobs:
       - test
-      # - build
-      # - deploy-staging:
-      #     requires:
-      #       - test
-      #       - build
-      # - promote-to-prod:
-      #     type: approval
-      #     requires:
-      #       - deploy-staging
-      # - deploy-prod:
-      #     requires:
-      #       - promote-to-prod
+      - build
+      - deploy-staging:
+          requires:
+            - test
+            - build
+      - promote-to-prod:
+          type: approval
+          requires:
+            - deploy-staging
+      - deploy-prod:
+          requires:
+            - promote-to-prod
 
 jobs:  # Collection of commands needed to accomplish a specific task
   build:
@@ -29,7 +29,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true  # DLC will cache layers and avoid rebuilding unchanged ones
+          docker_layer_caching: true
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
@@ -47,14 +47,8 @@ jobs:  # Collection of commands needed to accomplish a specific task
           password: $DOCKER_PASS    
     steps:
       - checkout
-      # - run: npm install
-      # - run: npm test
-      - run: git branch -l
-      - run: git fetch --all
-      - run: git branch -l
-      - run: git rev-parse --abbrev-ref HEAD
-      - run: git show-branch | sed "s/].*//" | grep "\*" | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//"
-          
+      - run: npm install
+      - run: npm test
   deploy-staging:
     docker:
       - image: circleci/node:10.15
