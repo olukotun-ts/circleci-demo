@@ -42,7 +42,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
           command: docker push olukotunts/app:$CIRCLE_SHA1
   build_runner:
     machine: true
-    resource_class: sandbox/runner
+    resource_class: demo/runner
     steps:
       - checkout
       - setup_remote_docker:
