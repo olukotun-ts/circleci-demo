@@ -156,7 +156,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
       - run: 
           name: Create activation file
           command: |
-            docker run gableroux/unity3d:2018.2.6f1 bash $HOME/project/.circleci/scripts/create-activation-file.sh
+            sudo docker run gableroux/unity3d:2018.2.6f1 bash $HOME/project/.circleci/scripts/create-activation-file.sh
   unity-machine:
     machine: true
     resource_class: xlarge # 8vCPUs + 32GB RAM
