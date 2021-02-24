@@ -64,3 +64,5 @@ typings/
 public/bundle.js
 
 .DS_Store
+
+.circleci/scripts

@@ -1,5 +1,12 @@
 version: 2.1
 
+commands:
+  install-aws-cli:
+    steps:
+      - run:
+          name: Install AWS CLI
+          command: echo "Installing AWS CLI..."
+
 workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
   build_test_and_deploy:
@@ -19,13 +26,13 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
             - promote-to-prod
   demo_runner:
     jobs:
-      - build_runner
+      - build-runner
   convert_jenkins:
     jobs:
-      - jenkins_build
+      - jenkins-build
       - deploy:
           requires:
-            - jenkins_build
+            - jenkins-build
       - approve-promote:
           type: approval
           requires:
@@ -135,15 +142,16 @@ jobs:  # Collection of commands needed to accomplish a specific task
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button web
-  build_runner:
+  build-runner:
     machine: true
     resource_class: sandboxi/runner
     steps:
       - checkout
       - run: printenv
-  jenkins_build:
+  jenkins-build:
     machine: true
     steps:
+      - install-aws-cli
       - run: echo "Running build.sh"
   deploy:
     machine: true
