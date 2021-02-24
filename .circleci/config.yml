@@ -30,7 +30,9 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
             - promote-to-prod
   demo_runner:
     jobs:
-      - build-runner
+      - unity-runner
+      - unity-machine
+      - unity-docker
   convert_jenkins:
     jobs:
       - jenkins-build
@@ -54,6 +56,8 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
       - promote-stage:
           requires:
             - approve-promote-stage
+
+pull docker image on machine, docker, runner
 
 jobs:  # Collection of commands needed to accomplish a specific task
   build:
@@ -146,12 +150,36 @@ jobs:  # Collection of commands needed to accomplish a specific task
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button web
-  build-runner:
+  unity-runner:
     machine: true
-    resource_class: sandboxi/runner
+    resource_class: sandboxi/runner # Deployed on t2.xlarge
     steps:
       - checkout
-      - run: printenv
+      - run: 
+          name: Create activation file
+          command: |
+            docker run gableroux/unity3d:2018.2.6f1 bash $HOME/project/.circleci/scripts/create-activation-file.sh
+  unity-machine:
+    machine: true
+    resource_class: xlarge # 8vCPUs + 32GB RAM
+    steps:
+      - checkout
+      - run: 
+          name: Create activation file
+          command: |
+            docker run gableroux/unity3d:2018.2.6f1 bash $HOME/project/.circleci/scripts/create-activation-file.sh
+  unity-docker:
+    docker:
+    - image: gableroux/unity3d:2018.2.6f1
+    resource_class: xlarge
+    steps:
+      - checkout
+      - run:
+          name: Create activation file
+          command: |
+            cd /opt/Unity/Editor
+            ./Unity -quit -batchmode -nographics -logFile -createManualActivationFile
+
   jenkins-build:
     machine: true
     steps:
