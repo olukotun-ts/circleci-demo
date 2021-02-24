@@ -157,43 +157,33 @@ jobs:  # Collection of commands needed to accomplish a specific task
     steps:
       - checkout
       - aws-cli/setup
-      - run: ls -al $HOME/project/.circleci/scripts
       - run: chmod -R +x $HOME/project/.circleci/scripts/
-      - run: ls -al $HOME/project/.circleci/scripts
       - run: $HOME/project/.circleci/scripts/build.sh
   deploy:
     machine: true
     steps:
       - checkout
       - aws-cli/setup
-      - run: ls -al $HOME/project/.circleci/scripts
       - run: chmod -R +x $HOME/project/.circleci/scripts/
-      - run: ls -al $HOME/project/.circleci/scripts
       - run: $HOME/project/.circleci/scripts/deploy.sh
   promote:
     machine: true
     steps:
       - checkout
       - aws-cli/setup
-      - run: ls -al $HOME/project/.circleci/scripts
       - run: chmod -R +x $HOME/project/.circleci/scripts/
-      - run: ls -al $HOME/project/.circleci/scripts
       - run: $HOME/project/.circleci/scripts/promote.sh
   deploy-stage:
     machine: true
     steps:
       - checkout
       - aws-cli/setup
-      - run: ls -al $HOME/project/.circleci/scripts
       - run: chmod -R +x $HOME/project/.circleci/scripts/
-      - run: ls -al $HOME/project/.circleci/scripts
       - run: $HOME/project/.circleci/scripts/deploy-stage.sh
   promote-stage:
     machine: true
     steps:
       - checkout
       - aws-cli/setup
-      - run: ls -al $HOME/project/.circleci/scripts
       - run: chmod -R +x $HOME/project/.circleci/scripts/
-      - run: ls -al $HOME/project/.circleci/scripts
       - run: $HOME/project/.circleci/scripts/promote-stage.sh
