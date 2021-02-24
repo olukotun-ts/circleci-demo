@@ -157,7 +157,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
     steps:
       - checkout
       - aws-cli/setup
-      - run: ls -al $HOME/project.circleci/scripts
+      - run: ls -al $HOME/project/.circleci/scripts
       - run: chmod -R +x $HOME/project/.circleci/scripts/
       - run: ls -al $HOME/project/.circleci/scripts
       - run: $HOME/project/.circleci/scripts/build.sh
@@ -166,7 +166,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
     steps:
       - checkout
       - aws-cli/setup
-      - run: ls -al $HOME/project.circleci/scripts
+      - run: ls -al $HOME/project/.circleci/scripts
       - run: chmod -R +x $HOME/project/.circleci/scripts/
       - run: ls -al $HOME/project/.circleci/scripts
       - run: $HOME/project/.circleci/scripts/deploy.sh
@@ -175,7 +175,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
     steps:
       - checkout
       - aws-cli/setup
-      - run: ls -al $HOME/project.circleci/scripts
+      - run: ls -al $HOME/project/.circleci/scripts
       - run: chmod -R +x $HOME/project/.circleci/scripts/
       - run: ls -al $HOME/project/.circleci/scripts
       - run: $HOME/project/.circleci/scripts/promote.sh
@@ -184,7 +184,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
     steps:
       - checkout
       - aws-cli/setup
-      - run: ls -al $HOME/project.circleci/scripts
+      - run: ls -al $HOME/project/.circleci/scripts
       - run: chmod -R +x $HOME/project/.circleci/scripts/
       - run: ls -al $HOME/project/.circleci/scripts
       - run: $HOME/project/.circleci/scripts/deploy-stage.sh
@@ -193,7 +193,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
     steps:
       - checkout
       - aws-cli/setup
-      - run: ls -al $HOME/project.circleci/scripts
+      - run: ls -al $HOME/project/.circleci/scripts
       - run: chmod -R +x $HOME/project/.circleci/scripts/
       - run: ls -al $HOME/project/.circleci/scripts
       - run: $HOME/project/.circleci/scripts/promote-stage.sh
