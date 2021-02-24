@@ -6,7 +6,6 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
     jobs:
       - test
       - build
-      - build_runner
       - deploy-staging:
           requires:
             - test
@@ -18,6 +17,32 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
       - deploy-prod:
           requires:
             - promote-to-prod
+  demo_runner:
+    jobs:
+      - runner_build
+  convert_jenkins:
+    jobs:
+      - jenkins_build
+      - deploy:
+          requires:
+            - jenkins_build
+      - approve-promote:
+          type: approval
+          requires:
+            - deploy
+      - promote:
+          requires:
+            - approve-promote
+      - deploy-stage:
+          requires:
+            - promote
+      - approve-promote-stage:
+          type: approval
+          requires:
+            - deploy-stage
+      - promote-stage:
+          requires:
+            - approve-promote-stage
 
 jobs:  # Collection of commands needed to accomplish a specific task
   build:
@@ -28,21 +53,6 @@ jobs:  # Collection of commands needed to accomplish a specific task
           password: $DOCKER_PASS
     resource_class: large  # Options range from small to 2xlarge+
     steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run: 
-          name: Build Docker image
-          command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
-      - run:
-          name: Push Docker image to Docker Hub
-          command: docker push olukotunts/app:$CIRCLE_SHA1
-  build_runner:
-    machine: true
-    resource_class: sandboxi/runner
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
@@ -125,3 +135,29 @@ jobs:  # Collection of commands needed to accomplish a specific task
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button web
+  build_runner:
+    machine: true
+    resource_class: sandboxi/runner
+    steps:
+      - checkout
+      - run: printenv
+  jenkins_build:
+    machine: true
+    steps:
+      - run: echo "Running build.sh"
+  deploy:
+    machine: true
+    steps:
+      - run: echo "Running deploy.sh"
+  promote:
+    machine: true
+    steps:
+      - run: echo "Running promote.sh"
+  deploy-stage:
+    machine: true
+    steps:
+      - run: echo "Running deploy-stage.sh"
+  promote-stage:
+    machine: true
+    steps:
+      - run: echo "Running promote-stage.sh"
