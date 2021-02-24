@@ -1,177 +1,519 @@
-version: 2.1
-
-commands:
-  install-aws-cli:
+# Orb 'circleci/aws-cli@1.4.0' resolved to 'circleci/aws-cli@1.4.0'
+version: 2
+jobs:
+  deploy:
+    machine: true
     steps:
-      - run: which aws
-      - run:
-          name: Install AWS CLI
-          command: echo "Installing AWS CLI..."
+    - run:
+        command: |
+          AWS_VER_REGEXP_2='aws-cli\/2.\d*.\d*'
+          AWS_VER_REGEXP_1='aws-cli\/1.\d*.\d*'
+          # initialize installed version to zero, to signify not installed (Or we want to ignore the installed version and re-install).
+          AWS_CLI_INSTALLED_VERSION="0"
+          AWS_CLI_VERSION_SELECTED="2"
 
-orbs:
-  aws-cli: circleci/aws-cli@1.4.0
+          if [[ $EUID == 0 ]]; then export SUDO=""; else export SUDO="sudo"; fi
 
-workflows:  # Collection of jobs orchestrated to run in a specific order
-  version: 2.1
-  build_test_and_deploy:
-    jobs:
-      - test
-      - build
-      - deploy-staging:
-          requires:
-            - test
-            - build
-      - promote-to-prod:
-          type: approval
-          requires:
-            - deploy-staging
-      - deploy-prod:
-          requires:
-            - promote-to-prod
-  demo_runner:
-    jobs:
-      - build-runner
-  convert_jenkins:
-    jobs:
-      - jenkins-build
-      - deploy:
-          requires:
-            - jenkins-build
-      - approve-promote:
-          type: approval
-          requires:
-            - deploy
-      - promote:
-          requires:
-            - approve-promote
-      - deploy-stage:
-          requires:
-            - promote
-      - approve-promote-stage:
-          type: approval
-          requires:
-            - deploy-stage
-      - promote-stage:
-          requires:
-            - approve-promote-stage
+          if [ "false" == "false" ]; then
+              if ! command -v aws --version >/dev/null 2>&1  ; then
+                  echo AWS is not installed
+              else
+                  echo AWS is currently installed.
+                  if aws --version 2>&1 | grep -q $AWS_VER_REGEXP_2; then
+                      echo AWS CLI v2 is installed
+                      AWS_CLI_INSTALLED_VERSION="2"
+                  fi
+                  if aws --version 2>&1 | grep -q $AWS_VER_REGEXP_1; then
+                      echo AWS CLI v1 is installed
+                      AWS_CLI_INSTALLED_VERSION="1"
+                  fi
+              fi
+          else
+              echo "Skipping version check. Installing CLI"
+          fi
 
-jobs:  # Collection of commands needed to accomplish a specific task
-  build:
-    docker:  # CircleCI supports Docker, Linux, Windows, and macOS
-      - image: circleci/node:10.15
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
-    resource_class: large  # Options range from small to 2xlarge+
+          AWS_V2_UPDATE_PARAM=""
+          if aws --version 2>&1 | grep -q $AWS_VER_REGEXP_2; then
+              AWS_V2_UPDATE_PARAM="--update"
+          fi
+
+          #If the desired version of the CLI is not installed, install it.
+          if [[ $AWS_CLI_VERSION_SELECTED != $AWS_CLI_INSTALLED_VERSION ]]; then
+
+              #uninstall AWS CLI if it is installed.
+              if which aws; then
+                  echo Uninstalling old CLI
+                  $SUDO rm -rf $(which aws)
+              fi
+              case $AWS_CLI_VERSION_SELECTED in
+                  "1")
+                      if ! command -v python >/dev/null 2>&1 && ! command -v python3 >/dev/null 2>&1 ; then
+                          echo "Your environment does not seem to have Python installed, a requirement of the AWS CLI."
+                          echo "Please either utilize the AWS CLI v2, or select an envionment with Python installed."
+                          echo "Recommended image: cimg:/python:3.8"
+                          exit 1
+                      fi
+                      # install CLI v1
+                      export PIP=$(which pip pip3 | head -1)
+                      if [[ -n "${PIP:-}" ]]; then
+                          if which sudo > /dev/null; then
+                              sudo $PIP install awscli --upgrade
+                          else
+                              # This installs the AWS CLI to ~/.local/bin. Make sure that ~/.local/bin is in your $PATH.
+                              $PIP install awscli --upgrade --user
+                          fi
+                      elif [[ $(which unzip curl | wc -l) -eq 2 ]]; then
+                          cd
+                          curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+                          unzip -q awscli-bundle.zip
+                          if which sudo > /dev/null; then
+                              sudo ~/awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+                          else
+                              # This installs the AWS CLI to the default location (~/.local/lib/aws) and create a symbolic link (symlink) at ~/bin/aws. Make sure that ~/bin is in your $PATH.
+                              awscli-bundle/install -b ~/bin/aws
+                          fi
+                          rm -rf awscli-bundle*
+                          cd -
+                      else
+                          echo "Unable to install AWS CLI. Please install pip."
+                          exit 1
+                      fi
+                      # Installation check
+                      if env -u AWS_PROFILE aws --version &> grep -q "aws-cli/1"; then
+                          echo "AWS CLI V1 has been installed successfully"
+                          exit 0
+                      else
+                          echo "There was an issue installing the AWS CLI V1. Exiting."
+                          exit 1
+                      fi
+                  ;;
+                  "2")
+                      # install CLI v2
+
+                      cd /tmp || exit
+
+                      # PLATFORM CHECK: mac vs. alpine vs. other linux
+                      if uname -a | grep Darwin; then
+                          SYS_ENV_PLATFORM=darwin
+                      elif uname -a | grep Linux; then
+                          SYS_ENV_PLATFORM=linux
+                      else
+                          echo "This platform appears to be unsupported."
+                          uname -a
+                          exit 1
+                      fi
+
+                      case $SYS_ENV_PLATFORM in
+                          linux)
+                              curl -sSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                              unzip -q awscliv2.zip
+                              $SUDO ./aws/install $AWS_V2_UPDATE_PARAM
+                              rm awscliv2.zip
+                              ;;
+                          darwin)
+                              curl -sSL "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+                              $SUDO installer -pkg AWSCLIV2.pkg -target /
+                              rm AWSCLIV2.pkg
+                              ;;
+                          *)
+                              echo "This orb does not currently support your platform. If you believe it should, please consider opening an issue on the GitHub repository:"
+                              echo "https://github.com/CircleCI-Public/aws-cli-orb/issues/new"
+                              exit 1
+                          ;;
+                      esac
+                      # Installation check
+                      if aws --version &> grep -q "aws-cli/2"; then
+                          echo "AWS CLI V2 has been installed successfully"
+                          exit 0
+                      else
+                          echo "There was an issue installing the AWS CLI V2. Exiting."
+                          exit 1
+                      fi
+                  ;;
+              esac
+
+          else
+              echo "The v${AWS_CLI_VERSION_SELECTED} AWS CLI is already installed."
+              exit 0
+          fi
+        name: Install AWS CLI v2
+    - run:
+        command: |
+          if [ -z "${AWS_PAGER+x}" ]; then
+            echo 'export AWS_PAGER=""' >> $BASH_ENV
+            echo "AWS_PAGER is being set to the empty string to disable all output paging for AWS CLI commands."
+            echo "You can set the 'disable-aws-pager' parameter to 'false' to disable this behavior."
+          fi
+        name: Disable AWS pager if not already configured
+    - run:
+        command: |
+          aws configure set aws_access_key_id \
+            $AWS_ACCESS_KEY_ID \
+            --profile default
+        name: Configure AWS Access Key ID
+    - run:
+        command: |
+          aws configure set aws_secret_access_key \
+            $AWS_SECRET_ACCESS_KEY \
+            --profile default
+        name: Configure AWS Secret Access Key
+    - run:
+        command: |
+          aws configure set default.region $AWS_DEFAULT_REGION \
+            --profile default
+        name: Configure AWS default region
+    - run:
+        command: |
+          aws configure set region $AWS_DEFAULT_REGION \
+            --profile default
+        name: Configure AWS profile region
+    - run:
+        command: echo "Running deploy.sh"
+    - run:
+        command: which aws
+  deploy-stage:
+    machine: true
     steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run: 
-          name: Build Docker image
-          command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
-      - run:
-          name: Push Docker image to Docker Hub
-          command: docker push olukotunts/app:$CIRCLE_SHA1
-  test:
-    docker:
-      - image: circleci/node:10.15
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS    
-    steps:
-      - checkout
-      - run: npm install
-      - run: npm test
+    - run:
+        command: echo "Running deploy-stage.sh"
   deploy-staging:
     docker:
-      - image: circleci/node:10.15
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
+    - image: circleci/node:10.15
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PASS
     steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run:
-          name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
-      - run:
-          name: Install Heroku CLI
-          command: curl https://cli-assets.heroku.com/install.sh | sh
-      - run:
-          name: Log in to Heroku Container Registry
-          command: heroku container:login
-      - run:
-          name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
-      - run:
-          name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button-staging/web
-      - run:
-          name: Deploy Docker image to Heroku
-          command: heroku container:release --app name-button-staging web
+    - checkout
+    - setup_remote_docker
+    - run:
+        name: Log in to Docker Hub
+        command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+    - run:
+        name: Pull Docker image from Docker Hub
+        command: docker pull olukotunts/app:$CIRCLE_SHA1
+    - run:
+        name: Install Heroku CLI
+        command: curl https://cli-assets.heroku.com/install.sh | sh
+    - run:
+        name: Log in to Heroku Container Registry
+        command: heroku container:login
+    - run:
+        name: Tag Docker image
+        command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
+    - run:
+        name: Push Docker image to Heroku
+        command: docker push registry.heroku.com/name-button-staging/web
+    - run:
+        name: Deploy Docker image to Heroku
+        command: heroku container:release --app name-button-staging web
+  jenkins-build:
+    machine: true
+    steps:
+    - run:
+        command: which aws
+    - run:
+        name: Install AWS CLI
+        command: echo "Installing AWS CLI..."
+    - run:
+        command: echo "Running build.sh"
   deploy-prod:
     docker:
-      - image: circleci/node:10.15
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
+    - image: circleci/node:10.15
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PASS
     steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run:
-          name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
-      - run:
-          name: Install Heroku CLI
-          command: curl https://cli-assets.heroku.com/install.sh | sh
-      - run:
-          name: Log in to Heroku Container Registry
-          command: heroku container:login
-      - run:
-          name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
-      - run:
-          name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button/web
-      - run:
-          name: Deploy Docker image to Heroku
-          command: heroku container:release --app name-button web
+    - checkout
+    - setup_remote_docker
+    - run:
+        name: Log in to Docker Hub
+        command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+    - run:
+        name: Pull Docker image from Docker Hub
+        command: docker pull olukotunts/app:$CIRCLE_SHA1
+    - run:
+        name: Install Heroku CLI
+        command: curl https://cli-assets.heroku.com/install.sh | sh
+    - run:
+        name: Log in to Heroku Container Registry
+        command: heroku container:login
+    - run:
+        name: Tag Docker image
+        command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
+    - run:
+        name: Push Docker image to Heroku
+        command: docker push registry.heroku.com/name-button/web
+    - run:
+        name: Deploy Docker image to Heroku
+        command: heroku container:release --app name-button web
+  promote:
+    machine: true
+    steps:
+    - run:
+        command: echo "Running promote.sh"
+  build:
+    docker:
+    - image: circleci/node:10.15
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PASS
+    resource_class: large
+    steps:
+    - checkout
+    - setup_remote_docker:
+        docker_layer_caching: true
+    - run:
+        name: Log in to Docker Hub
+        command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+    - run:
+        name: Build Docker image
+        command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
+    - run:
+        name: Push Docker image to Docker Hub
+        command: docker push olukotunts/app:$CIRCLE_SHA1
+  promote-stage:
+    machine: true
+    steps:
+    - run:
+        command: echo "Running promote-stage.sh"
   build-runner:
     machine: true
     resource_class: sandboxi/runner
     steps:
-      - checkout
-      - run: printenv
-  jenkins-build:
-    machine: true
+    - checkout
+    - run:
+        command: printenv
+  test:
+    docker:
+    - image: circleci/node:10.15
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PASS
     steps:
-      - install-aws-cli
-      - run: echo "Running build.sh"
-  deploy:
-    machine: true
-    steps:
-      - aws-cli/setup
-      - run: echo "Running deploy.sh"
-      - run: which aws
-  promote:
-    machine: true
-    steps:
-      - run: echo "Running promote.sh"
-  deploy-stage:
-    machine: true
-    steps:
-      - run: echo "Running deploy-stage.sh"
-  promote-stage:
-    machine: true
-    steps:
-      - run: echo "Running promote-stage.sh"
+    - checkout
+    - run:
+        command: npm install
+    - run:
+        command: npm test
+workflows:
+  version: 2
+  build_test_and_deploy:
+    jobs:
+    - test
+    - build
+    - deploy-staging:
+        requires:
+        - test
+        - build
+    - promote-to-prod:
+        type: approval
+        requires:
+        - deploy-staging
+    - deploy-prod:
+        requires:
+        - promote-to-prod
+  demo_runner:
+    jobs:
+    - build-runner
+  convert_jenkins:
+    jobs:
+    - jenkins-build
+    - deploy:
+        requires:
+        - jenkins-build
+    - approve-promote:
+        type: approval
+        requires:
+        - deploy
+    - promote:
+        requires:
+        - approve-promote
+    - deploy-stage:
+        requires:
+        - promote
+    - approve-promote-stage:
+        type: approval
+        requires:
+        - deploy-stage
+    - promote-stage:
+        requires:
+        - approve-promote-stage
+
+# Original config.yml file:
+# version: 2.1
+# 
+# commands:
+#   install-aws-cli:
+#     steps:
+#       - run: which aws
+#       - run:
+#           name: Install AWS CLI
+#           command: echo \"Installing AWS CLI...\"
+# 
+# orbs:
+#   aws-cli: circleci/aws-cli@1.4.0
+# 
+# workflows:  # Collection of jobs orchestrated to run in a specific order
+#   version: 2.1
+#   build_test_and_deploy:
+#     jobs:
+#       - test
+#       - build
+#       - deploy-staging:
+#           requires:
+#             - test
+#             - build
+#       - promote-to-prod:
+#           type: approval
+#           requires:
+#             - deploy-staging
+#       - deploy-prod:
+#           requires:
+#             - promote-to-prod
+#   demo_runner:
+#     jobs:
+#       - build-runner
+#   convert_jenkins:
+#     jobs:
+#       - jenkins-build
+#       - deploy:
+#           requires:
+#             - jenkins-build
+#       - approve-promote:
+#           type: approval
+#           requires:
+#             - deploy
+#       - promote:
+#           requires:
+#             - approve-promote
+#       - deploy-stage:
+#           requires:
+#             - promote
+#       - approve-promote-stage:
+#           type: approval
+#           requires:
+#             - deploy-stage
+#       - promote-stage:
+#           requires:
+#             - approve-promote-stage
+# 
+# jobs:  # Collection of commands needed to accomplish a specific task
+#   build:
+#     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
+#       - image: circleci/node:10.15
+#         auth:
+#           username: $DOCKER_USER
+#           password: $DOCKER_PASS
+#     resource_class: large  # Options range from small to 2xlarge+
+#     steps:
+#       - checkout
+#       - setup_remote_docker:
+#           docker_layer_caching: true
+#       - run:
+#           name: Log in to Docker Hub
+#           command: echo \"$DOCKER_PASS\" | docker login -u $DOCKER_USER --password-stdin
+#       - run: 
+#           name: Build Docker image
+#           command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
+#       - run:
+#           name: Push Docker image to Docker Hub
+#           command: docker push olukotunts/app:$CIRCLE_SHA1
+#   test:
+#     docker:
+#       - image: circleci/node:10.15
+#         auth:
+#           username: $DOCKER_USER
+#           password: $DOCKER_PASS    
+#     steps:
+#       - checkout
+#       - run: npm install
+#       - run: npm test
+#   deploy-staging:
+#     docker:
+#       - image: circleci/node:10.15
+#         auth:
+#           username: $DOCKER_USER
+#           password: $DOCKER_PASS
+#     steps:
+#       - checkout
+#       - setup_remote_docker
+#       - run:
+#           name: Log in to Docker Hub
+#           command: echo \"$DOCKER_PASS\" | docker login -u $DOCKER_USER --password-stdin
+#       - run:
+#           name: Pull Docker image from Docker Hub
+#           command: docker pull olukotunts/app:$CIRCLE_SHA1
+#       - run:
+#           name: Install Heroku CLI
+#           command: curl https://cli-assets.heroku.com/install.sh | sh
+#       - run:
+#           name: Log in to Heroku Container Registry
+#           command: heroku container:login
+#       - run:
+#           name: Tag Docker image
+#           command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
+#       - run:
+#           name: Push Docker image to Heroku
+#           command: docker push registry.heroku.com/name-button-staging/web
+#       - run:
+#           name: Deploy Docker image to Heroku
+#           command: heroku container:release --app name-button-staging web
+#   deploy-prod:
+#     docker:
+#       - image: circleci/node:10.15
+#         auth:
+#           username: $DOCKER_USER
+#           password: $DOCKER_PASS
+#     steps:
+#       - checkout
+#       - setup_remote_docker
+#       - run:
+#           name: Log in to Docker Hub
+#           command: echo \"$DOCKER_PASS\" | docker login -u $DOCKER_USER --password-stdin
+#       - run:
+#           name: Pull Docker image from Docker Hub
+#           command: docker pull olukotunts/app:$CIRCLE_SHA1
+#       - run:
+#           name: Install Heroku CLI
+#           command: curl https://cli-assets.heroku.com/install.sh | sh
+#       - run:
+#           name: Log in to Heroku Container Registry
+#           command: heroku container:login
+#       - run:
+#           name: Tag Docker image
+#           command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
+#       - run:
+#           name: Push Docker image to Heroku
+#           command: docker push registry.heroku.com/name-button/web
+#       - run:
+#           name: Deploy Docker image to Heroku
+#           command: heroku container:release --app name-button web
+#   build-runner:
+#     machine: true
+#     resource_class: sandboxi/runner
+#     steps:
+#       - checkout
+#       - run: printenv
+#   jenkins-build:
+#     machine: true
+#     steps:
+#       - install-aws-cli
+#       - run: echo \"Running build.sh\"
+#   deploy:
+#     machine: true
+#     steps:
+#       - aws-cli/setup
+#       - run: echo \"Running deploy.sh\"
+#       - run: which aws
+#   promote:
+#     machine: true
+#     steps:
+#       - run: echo \"Running promote.sh\"
+#   deploy-stage:
+#     machine: true
+#     steps:
+#       - run: echo \"Running deploy-stage.sh\"
+#   promote-stage:
+#     machine: true
+#     steps:
+#       - run: echo \"Running promote-stage.sh\"
