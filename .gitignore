@@ -65,4 +65,4 @@ public/bundle.js
 
 .DS_Store
 
-.circleci/scripts
+.circleci/_scripts
