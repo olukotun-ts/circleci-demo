@@ -3,9 +3,13 @@ version: 2.1
 commands:
   install-aws-cli:
     steps:
+      - run: which aws
       - run:
           name: Install AWS CLI
           command: echo "Installing AWS CLI..."
+
+orbs:
+  aws-cli: circleci/aws-cli@1.4.0
 
 workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
@@ -156,7 +160,9 @@ jobs:  # Collection of commands needed to accomplish a specific task
   deploy:
     machine: true
     steps:
+      - aws-cli/setup
       - run: echo "Running deploy.sh"
+      - run: which aws
   promote:
     machine: true
     steps:
