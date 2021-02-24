@@ -19,7 +19,7 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
             - promote-to-prod
   demo_runner:
     jobs:
-      - runner_build
+      - build_runner
   convert_jenkins:
     jobs:
       - jenkins_build
