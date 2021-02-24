@@ -57,8 +57,6 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
           requires:
             - approve-promote-stage
 
-pull docker image on machine, docker, runner
-
 jobs:  # Collection of commands needed to accomplish a specific task
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
