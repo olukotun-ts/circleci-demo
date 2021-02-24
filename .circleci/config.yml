@@ -155,25 +155,30 @@ jobs:  # Collection of commands needed to accomplish a specific task
   jenkins-build:
     machine: true
     steps:
+      - checkout
       - aws-cli/setup
       - run: ./scripts/build.sh
   deploy:
     machine: true
     steps:
+      - checkout
       - aws-cli/setup
       - run: ./scripts/deploy.sh
   promote:
     machine: true
     steps:
+      - checkout
       - aws-cli/setup
       - run: ./scripts/promote.sh
   deploy-stage:
     machine: true
     steps:
+      - checkout
       - aws-cli/setup
       - run: ./scripts/deploy-stage.sh
   promote-stage:
     machine: true
     steps:
+      - checkout
       - aws-cli/setup
       - run: ./scripts/promote-stage.sh
