@@ -153,23 +153,17 @@ jobs:  # Collection of commands needed to accomplish a specific task
     resource_class: sandboxi/runner # Deployed on t2.xlarge
     steps:
       - checkout
-      # - run:
-      #     name: Start Unity container
-      #     command: sudo docker run --name unity-container gableroux/unity3d:2018.2.6f1
       - run: 
           name: Create activation file
-          command: sudo docker exec unity-container bash "cd /opt/Unity/Editor;./Unity -quit -batchmode -nographics -logFile -createManualActivationFile || exit 0"
+          command: sudo docker run gableroux/unity3d:2018.2.6f1 cd /opt/Unity/Editor;./Unity -quit -batchmode -nographics -logFile -createManualActivationFile || exit 0
   unity-machine:
     machine: true
     resource_class: xlarge # 8vCPUs + 32GB RAM
     steps:
       - checkout
-      - run:
-          name: Start Unity container
-          command: sudo docker run --name unity-container gableroux/unity3d:2018.2.6f1
       - run: 
           name: Create activation file
-          command: sudo docker exec unity-container bash "cd /opt/Unity/Editor;./Unity -quit -batchmode -nographics -logFile -createManualActivationFile || exit 0"
+          command: sudo docker run gableroux/unity3d:2018.2.6f1 cd /opt/Unity/Editor;./Unity -quit -batchmode -nographics -logFile -createManualActivationFile || exit 0
   unity-docker:
     docker:
     - image: gableroux/unity3d:2018.2.6f1
