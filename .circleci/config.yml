@@ -156,24 +156,24 @@ jobs:  # Collection of commands needed to accomplish a specific task
     machine: true
     steps:
       - aws-cli/setup
-      - run: ./scripts/build.sh"
+      - run: ./scripts/build.sh
   deploy:
     machine: true
     steps:
       - aws-cli/setup
-      - run: ./scripts/deploy.sh"
+      - run: ./scripts/deploy.sh
   promote:
     machine: true
     steps:
       - aws-cli/setup
-      - run: ./scripts/promote.sh"
+      - run: ./scripts/promote.sh
   deploy-stage:
     machine: true
     steps:
       - aws-cli/setup
-      - run: ./scripts/deploy-stage.sh"
+      - run: ./scripts/deploy-stage.sh
   promote-stage:
     machine: true
     steps:
       - aws-cli/setup
-      - run: ./scripts/promote-stage.sh"
+      - run: ./scripts/promote-stage.sh
