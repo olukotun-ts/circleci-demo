@@ -3,24 +3,27 @@ version: 2.1
 orbs:
   node: circleci/node@4.2.0
 
-###########################################################################
-# Specify the parameters that will be provided to the pipeline via API
-###########################################################################
+##############################################################################
+#### Specify the parameters that will be provided to the pipeline via API ####
+##############################################################################
 parameters:
-  node_count:
+  parallelism:
     description: "Number of parallel nodes to provision"
+    default: 2
     type: integer
-  compute_size:
+  resource_class:
     description: "Size of compute resource"
+    default: "xlarge"
     type: string 
+##############################################################################
 
-workflows:  # Collection of jobs orchestrated to run in a specific order
+workflows:
   version: 2.1
   build_test_and_deploy:
     jobs:
       - test
-          parallelism: << pipeline.parameters.node_count >>
-          resource_class: << pipeline.parameters.compute_size >>
+          parallelism: << pipeline.parameters.parallelism >>
+          resource_class: << pipeline.parameters.resource_class >>
       - build
       - deploy-staging:
           requires:
@@ -56,30 +59,17 @@ jobs:
           name: Push Docker image to Docker Hub
           command: docker push olukotunts/app:$CIRCLE_SHA1
   test:
-    #################################################
-    #### Define the parameters needed by the job ####
-    #################################################
-    parameters:
-      parallelism:
-        description: "Number of parallel nodes to provision"
-        default: 2
-        type: integer
-      resource_class:
-        description: "Size of compute resource"
-        default: "xlarge"
-        type: string 
-    ##################################################
     docker:
       - image: circleci/node:10.15
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
-    resource_class: << parameters.resource_class >>
-    parallelism: << parameters.parallelism >>
+    resource_class: << pipeline.parameters.resource_class >>
+    parallelism: << pipeline.parameters.parallelism >>
     steps:
       - checkout
-      - run: echo Running with << parameters.parallelism >> nodes
-      - run: echo Running with << parameters.resource_class >> resource class
+      - run: echo Running with << pipeline.parameters.parallelism >> nodes
+      - run: echo Running with << pipeline.parameters.resource_class >> resource class
       - node/install-packages
       - run: npm test
   deploy-staging:
