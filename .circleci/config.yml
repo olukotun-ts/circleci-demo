@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  aws-cli: circleci/aws-cli@1.4.0
-
 workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
   build_test_and_deploy:
@@ -47,9 +44,20 @@ jobs:  # Collection of commands needed to accomplish a specific task
       - image: circleci/node:10.15
         auth:
           username: $DOCKER_USER
-          password: $DOCKER_PASS    
+          password: $DOCKER_PASS
+    parameters:
+      parallelism:
+        description: "Number of parallel nodes to provision"
+        default: 2
+        type: integer
+      resource_class:
+        description: "Size of compute resource"
+        default: "medium"
+        type: string 
     steps:
       - checkout
+      - run: echo Running with << parameters.parallelism >> nodes
+      - run: echo Running with << parameters.resource_class >> resource class
       - run: npm install
       - run: npm test
   deploy-staging:
