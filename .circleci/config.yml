@@ -20,11 +20,6 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
       - deploy-prod:
           requires:
             - promote-to-prod
-  demo_runner:
-    jobs:
-      - unity-runner
-      - unity-machine
-      - unity-docker
 
 jobs:  # Collection of commands needed to accomplish a specific task
   build:
@@ -117,28 +112,3 @@ jobs:  # Collection of commands needed to accomplish a specific task
       - run:
           name: Deploy Docker image to Heroku
           command: heroku container:release --app name-button web
-  unity-runner:
-    machine: true
-    resource_class: sandboxi/runner # Deployed on t2.xlarge
-    steps:
-      - checkout
-      - run: 
-          name: Create activation file
-          command: sudo docker run gableroux/unity3d:2018.2.6f1 ./opt/Unity/Editor/Unity -quit -batchmode -nographics -logFile -createManualActivationFile || exit 0
-  unity-machine:
-    machine: true
-    resource_class: xlarge # 8vCPUs + 32GB RAM
-    steps:
-      - checkout
-      - run: 
-          name: Create activation file
-          command: sudo docker run gableroux/unity3d:2018.2.6f1 ./opt/Unity/Editor/Unity -quit -batchmode -nographics -logFile -createManualActivationFile || exit 0
-  unity-docker:
-    docker:
-    - image: gableroux/unity3d:2018.2.6f1
-    resource_class: xlarge
-    steps:
-      - checkout
-      - run:
-          name: Create activation file
-          command: ./opt/Unity/Editor/Unity -quit -batchmode -nographics -logFile -createManualActivationFile || exit 0
