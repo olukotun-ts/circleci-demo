@@ -21,7 +21,7 @@ workflows:
   version: 2.1
   build_test_and_deploy:
     jobs:
-      - test
+      - test:
           parallelism: << pipeline.parameters.parallelism >>
           resource_class: << pipeline.parameters.resource_class >>
       - build
