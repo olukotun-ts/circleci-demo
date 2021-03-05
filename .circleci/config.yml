@@ -9,9 +9,11 @@ orbs:
 parameters:
   parallelism:
     description: "Number of parallel nodes to provision"
+    default: 2
     type: integer
   resource_class:
     description: "Size of compute resource"
+    default: "xlarge"
     type: string 
 ##############################################################################
 
@@ -60,11 +62,9 @@ jobs:
     parameters:
       parallelism:
         description: "Number of parallel nodes to provision"
-        default: 2
         type: integer
       resource_class:
         description: "Size of compute resource"
-        default: "xlarge"
         type: string 
     docker:
       - image: circleci/node:10.15
