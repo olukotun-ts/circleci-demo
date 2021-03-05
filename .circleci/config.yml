@@ -1,13 +1,5 @@
 version: 2.1
 
-commands:
-  install-aws-cli:
-    steps:
-      - run: which aws
-      - run:
-          name: Install AWS CLI
-          command: echo "Installing AWS CLI..."
-
 orbs:
   aws-cli: circleci/aws-cli@1.4.0
 
@@ -33,29 +25,6 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
       - unity-runner
       - unity-machine
       - unity-docker
-  convert_jenkins:
-    jobs:
-      - jenkins-build
-      - deploy:
-          requires:
-            - jenkins-build
-      - approve-promote:
-          type: approval
-          requires:
-            - deploy
-      - promote:
-          requires:
-            - approve-promote
-      - deploy-stage:
-          requires:
-            - promote
-      - approve-promote-stage:
-          type: approval
-          requires:
-            - deploy-stage
-      - promote-stage:
-          requires:
-            - approve-promote-stage
 
 jobs:  # Collection of commands needed to accomplish a specific task
   build:
@@ -173,38 +142,3 @@ jobs:  # Collection of commands needed to accomplish a specific task
       - run:
           name: Create activation file
           command: ./opt/Unity/Editor/Unity -quit -batchmode -nographics -logFile -createManualActivationFile || exit 0
-  jenkins-build:
-    machine: true
-    steps:
-      - checkout
-      - aws-cli/setup
-      - run: chmod -R +x $HOME/project/.circleci/scripts/
-      - run: $HOME/project/.circleci/scripts/build.sh
-  deploy:
-    machine: true
-    steps:
-      - checkout
-      - aws-cli/setup
-      - run: chmod -R +x $HOME/project/.circleci/scripts/
-      - run: $HOME/project/.circleci/scripts/deploy.sh
-  promote:
-    machine: true
-    steps:
-      - checkout
-      - aws-cli/setup
-      - run: chmod -R +x $HOME/project/.circleci/scripts/
-      - run: $HOME/project/.circleci/scripts/promote.sh
-  deploy-stage:
-    machine: true
-    steps:
-      - checkout
-      - aws-cli/setup
-      - run: chmod -R +x $HOME/project/.circleci/scripts/
-      - run: $HOME/project/.circleci/scripts/deploy-stage.sh
-  promote-stage:
-    machine: true
-    steps:
-      - checkout
-      - aws-cli/setup
-      - run: chmod -R +x $HOME/project/.circleci/scripts/
-      - run: $HOME/project/.circleci/scripts/promote-stage.sh
