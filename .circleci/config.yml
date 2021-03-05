@@ -9,11 +9,9 @@ orbs:
 parameters:
   parallelism:
     description: "Number of parallel nodes to provision"
-    default: 2
     type: integer
   resource_class:
     description: "Size of compute resource"
-    default: "xlarge"
     type: string 
 ##############################################################################
 
@@ -59,17 +57,26 @@ jobs:
           name: Push Docker image to Docker Hub
           command: docker push olukotunts/app:$CIRCLE_SHA1
   test:
+    parameters:
+      parallelism:
+        description: "Number of parallel nodes to provision"
+        default: 2
+        type: integer
+      resource_class:
+        description: "Size of compute resource"
+        default: "xlarge"
+        type: string 
     docker:
       - image: circleci/node:10.15
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
-    resource_class: << pipeline.parameters.resource_class >>
-    parallelism: << pipeline.parameters.parallelism >>
+    resource_class: << parameters.resource_class >>
+    parallelism: << parameters.parallelism >>
     steps:
       - checkout
-      - run: echo Running with << pipeline.parameters.parallelism >> nodes
-      - run: echo Running with << pipeline.parameters.resource_class >> resource class
+      - run: echo Running with << parameters.parallelism >> nodes
+      - run: echo Running with << parameters.resource_class >> resource class
       - node/install-packages
       - run: npm test
   deploy-staging:
