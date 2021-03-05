@@ -28,7 +28,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
-    resource_class: large  # Options range from small to 2xlarge+
+    resource_class: xlarge  # Options range from small to 2xlarge+
     steps:
       - checkout
       - setup_remote_docker:
@@ -50,7 +50,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
         type: integer
       resource_class:
         description: "Size of compute resource"
-        default: "medium"
+        default: "xlarge"
         type: string 
     docker:
       - image: circleci/node:10.15
