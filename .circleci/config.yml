@@ -3,11 +3,24 @@ version: 2.1
 orbs:
   node: circleci/node@4.2.0
 
+###########################################################################
+# Specify the parameters that will be provided to the pipeline via API
+###########################################################################
+parameters:
+  node_count:
+    description: "Number of parallel nodes to provision"
+    type: integer
+  compute_size:
+    description: "Size of compute resource"
+    type: string 
+
 workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
   build_test_and_deploy:
     jobs:
       - test
+          parallelism: << pipeline.parameters.node_count >>
+          resource_class: << pipeline.parameters.compute_size >>
       - build
       - deploy-staging:
           requires:
@@ -21,7 +34,7 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
           requires:
             - promote-to-prod
 
-jobs:  # Collection of commands needed to accomplish a specific task
+jobs:
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
       - image: circleci/node:10.15
@@ -43,6 +56,9 @@ jobs:  # Collection of commands needed to accomplish a specific task
           name: Push Docker image to Docker Hub
           command: docker push olukotunts/app:$CIRCLE_SHA1
   test:
+    #################################################
+    #### Define the parameters needed by the job ####
+    #################################################
     parameters:
       parallelism:
         description: "Number of parallel nodes to provision"
@@ -52,6 +68,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
         description: "Size of compute resource"
         default: "xlarge"
         type: string 
+    ##################################################
     docker:
       - image: circleci/node:10.15
         auth:
