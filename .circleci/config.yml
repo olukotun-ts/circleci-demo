@@ -37,7 +37,41 @@ workflows:
           requires:
             - promote-to-prod
 
+  contexts-poc:
+    jobs:
+      - check-dev:
+          context: dev
+      - check-staging:
+          context: staging
+      - check-prod:
+          context: prod
+
 jobs:
+  check-dev:
+    docker:
+      - image: circleci/node:10.15
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+    steps:
+      - run: [ "$DEMO_ENV" == "dev" ] && echo "ENV has the value 'dev'"
+  check-staging:
+    docker:
+      - image: circleci/node:10.15
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+    steps:
+      - run: [ "$DEMO_ENV" == "staging" ] && echo "ENV has the value 'staging'"
+  check-prod:
+    docker:
+      - image: circleci/node:10.15
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+    steps:
+      - run: [ "$DEMO_ENV" == "prod" ] && echo "ENV has the value 'prod'"
+
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
       - image: circleci/node:10.15
@@ -78,7 +112,9 @@ jobs:
       - run: echo Running with << parameters.parallelism >> nodes
       - run: echo Running with << parameters.resource_class >> resource class
       # - node/install-packages
-      - run: npm install
+      - run:
+          command: npm install
+          no_output_timeout: 1h
       - run: npm test
   deploy-staging:
     docker:
