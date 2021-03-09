@@ -126,10 +126,10 @@ jobs:
       - checkout
       - run: echo Running with << parameters.parallelism >> nodes
       - run: echo Running with << parameters.resource_class >> resource class
-      # - node/install-packages
-      - run:
-          command: npm install
-          no_output_timeout: 1h
+      - node/install-packages
+      # - run:
+      #     command: npm install
+      #     no_output_timeout: 1h
       - run: npm test
   deploy-staging:
     docker:
