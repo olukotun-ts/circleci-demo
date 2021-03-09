@@ -77,7 +77,8 @@ jobs:
       - checkout
       - run: echo Running with << parameters.parallelism >> nodes
       - run: echo Running with << parameters.resource_class >> resource class
-      - node/install-packages
+      # - node/install-packages
+      - run: npm install
       - run: npm test
   deploy-staging:
     docker:
