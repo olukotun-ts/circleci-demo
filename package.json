@@ -5,7 +5,6 @@
   "version": "0.1.0",
   "author": "CCHome",
   "dependencies": {
-    "@marketingtech/launch-code": "^0.18.1",
     "@react/react-spectrum": "^2.33.0",
     "@rearguard/is-bot": "^1.7.0",
     "contentful-resolve-response": "^1.2.2",
