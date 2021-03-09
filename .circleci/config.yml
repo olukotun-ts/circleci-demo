@@ -54,7 +54,12 @@ jobs:
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
-      - run: [ "$DEMO_ENV" == "dev" ] && echo "ENV has the value 'dev'"
+      - run: |
+          if [ "$DEMO_ENV" == "dev" ]; then
+            echo "Strings match"
+          else
+            echo "Strings don't match"
+          fi
   check-staging:
     docker:
       - image: circleci/node:10.15
@@ -62,7 +67,12 @@ jobs:
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
-      - run: [ "$DEMO_ENV" == "staging" ] && echo "ENV has the value 'staging'"
+      - run: |
+          if [ "$DEMO_ENV" == "staging" ]; then
+            echo "Strings match"
+          else
+            echo "Strings don't match"
+          fi
   check-prod:
     docker:
       - image: circleci/node:10.15
@@ -70,7 +80,12 @@ jobs:
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
-      - run: [ "$DEMO_ENV" == "prod" ] && echo "ENV has the value 'prod'"
+      - run: |
+          if [ "$DEMO_ENV" == "prod" ]; then
+            echo "Strings match"
+          else
+            echo "Strings don't match"
+          fi
 
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
