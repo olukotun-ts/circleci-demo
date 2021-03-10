@@ -1,6 +1,6 @@
 version: 2.1
 
-orbs:
+orbs:   # Orbs enable templating and config sharing across similar use cases
   node: circleci/node@4.2.0
 
 workflows:  # Collection of jobs orchestrated to run in a specific order
@@ -24,7 +24,7 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
 jobs:  # Collection of commands needed to accomplish a specific task
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
-      - image: circleci/node:10.15
+      - image: cimg/node:15.11.0  # Convenience images optimized for performance
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
@@ -32,7 +32,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true
+          docker_layer_caching: true  # Caching of unchanged Docker layers improves build speeds
       - run:
           name: Log in to Docker Hub
           command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
@@ -43,7 +43,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
           name: Push Docker image to Docker Hub
           command: docker push olukotunts/app:$CIRCLE_SHA1
   test:
-    parameters:
+    parameters:   # Parameterized jobs enable dynamic invocations
       parallelism:
         description: "Number of parallel nodes to provision"
         default: 2
@@ -53,7 +53,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
         default: "xlarge"
         type: string 
     docker:
-      - image: circleci/node:10.15
+      - image: cimg/node:15.11.0
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
@@ -63,11 +63,11 @@ jobs:  # Collection of commands needed to accomplish a specific task
       - checkout
       - run: echo Running with << parameters.parallelism >> nodes
       - run: echo Running with << parameters.resource_class >> resource class
-      - node/install-packages
+      - node/install-packages   # Orbs encapsulate complex logic and expose clean interfaces
       - run: npm test
   deploy-staging:
     docker:
-      - image: circleci/node:10.15
+      - image: cimg/node:15.11.0
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
@@ -97,7 +97,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
           command: heroku container:release --app name-button-staging web
   deploy-prod:
     docker:
-      - image: circleci/node:10.15
+      - image: cimg/node:15.11.0
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
