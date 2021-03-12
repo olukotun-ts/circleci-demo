@@ -44,7 +44,15 @@ jobs:  # Collection of commands needed to accomplish a specific task
       # - run: 
       #     name: Start dev server; verify status
       #     command: vault server -dev & vault status
-      - run: vault status
+      - run:
+          name: Verify status of Vault server
+          command: vault status
+      - run:
+          name: Write secrets
+          command: vault kv put adobe/demo presenter=Sam topic=VaultPOC
+      - run:
+          name: Read secrets
+          command: vault kv get adobe/demo
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
       - image: cimg/node:15.11.0  # Convenience images optimized for performance
