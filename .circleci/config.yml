@@ -24,7 +24,7 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
 
   vault_poc:
     jobs:
-      vault-poc
+      - vault-poc
 
 jobs:  # Collection of commands needed to accomplish a specific task
   vault-poc:
