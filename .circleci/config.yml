@@ -32,11 +32,10 @@ jobs:  # Collection of commands needed to accomplish a specific task
     resource_class: sandboxi/runner
     steps:
       - run:
-          name: Install jq
+          name: Install dependencies
           command: |
             sudo apt-get update -y
-            sudo apt-get install -y jq
-            which jq
+            sudo apt-get install -y jq unzip
       - vault/install
       - run: 
           name: Start dev server; verify status
