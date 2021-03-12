@@ -26,9 +26,6 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
     jobs:
       - vault-poc
 
-export VAULT_TOKEN="s.5YVt6UbAiOGcrOGnn2GTXQoQ"
-export VAULT_ADDR="https://127.0.0.1:8200"
-
 jobs:  # Collection of commands needed to accomplish a specific task
   vault-poc:
     machine: true
@@ -38,11 +35,11 @@ jobs:  # Collection of commands needed to accomplish a specific task
       VAULT_TOKEN: s.5YVt6UbAiOGcrOGnn2GTXQoQ
       UNSEAL_KEY: zwVsfSH2mao0h+QFooq8pMTdSoRmez9KaUbg1mH4fJg=
     steps:
-      - run:
-          name: Install dependencies
-          command: |
-            sudo apt-get update -y
-            sudo apt-get install -y jq unzip
+      # - run:
+      #     name: Install dependencies
+      #     command: |
+      #       sudo apt-get update -y
+      #       sudo apt-get install -y jq unzip
       # - vault/install
       # - run: 
       #     name: Start dev server; verify status
