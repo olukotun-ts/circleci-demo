@@ -47,9 +47,10 @@ jobs:  # Collection of commands needed to accomplish a specific task
       # - run: 
       #     name: Start dev server; verify status
       #     command: vault server -dev & vault status
-      - run: |
-          export VAULT_ADDR='http://127.0.0.1:8200'
-          vault status
+      - run:
+          command: |
+            export VAULT_ADDR='http://127.0.0.1:8200'
+            vault status
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
       - image: cimg/node:15.11.0  # Convenience images optimized for performance
