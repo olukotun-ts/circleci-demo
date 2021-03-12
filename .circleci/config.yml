@@ -28,19 +28,13 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
 
 jobs:  # Collection of commands needed to accomplish a specific task
   vault-poc:
-    docker: 
-      - image: cimg/node:15.11.0
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
+    machine: true
+    resource_class: sandboxi/runner
     steps:
       - vault/install
       - run: 
-          name: Start dev server
-          command: vault server -dev &
-      - run:
-          name: Verify server status
-          command: vault status
+          name: Start dev server; verify status
+          command: vault server -dev & vault status
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
       - image: cimg/node:15.11.0  # Convenience images optimized for performance
