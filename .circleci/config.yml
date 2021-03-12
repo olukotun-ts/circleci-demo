@@ -35,7 +35,12 @@ jobs:  # Collection of commands needed to accomplish a specific task
           password: $DOCKER_PASS
     steps:
       - vault/install
-      - run: which vault    
+      - run: 
+          name: Start dev server
+          command: vault server -dev
+      - run:
+          name: Verify server status
+          command: vault status
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
       - image: cimg/node:15.11.0  # Convenience images optimized for performance
