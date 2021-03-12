@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:   # Orbs enable templating and config sharing across similar use cases
   node: circleci/node@4.2.0
+  vault: jmingtan/hashicorp-vault@0.2.0
 
 workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
@@ -21,7 +22,20 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
           requires:
             - promote-to-prod
 
+  vault_poc:
+    jobs:
+      vault-poc
+
 jobs:  # Collection of commands needed to accomplish a specific task
+  vault-poc:
+    docker: 
+      - image: cimg/node:15.11.0
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+    steps:
+      - vault/install
+      - run: which vault    
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
       - image: cimg/node:15.11.0  # Convenience images optimized for performance
