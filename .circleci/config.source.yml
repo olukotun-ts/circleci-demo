@@ -48,7 +48,10 @@ workflows:
     jobs:
       - lint
       - test
-      - build
+      - build:
+          requires:
+            - lint
+            - test
       - deploy-staging:
           requires:
             - build
@@ -85,7 +88,7 @@ jobs:
       - run:
           name: Save image to filesystem
           command: docker save app:$BUILD_ID > tmp/build/app:${BUILD_ID}.tar
-      - persist_to_workspace:
+      - persist_to_workspace:   # Pass artifacts across jobs in the same workflow.
           root: .
           paths: tmp/build
   deploy-staging:
@@ -93,8 +96,6 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run: ls -al
-      - run: ls -al ./tmp
       - aws-s3/sync:
           from: ./tmp
           to: 's3://olukotun-demo/staging'
@@ -103,7 +104,6 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run: ls -al
       - aws-s3/sync:
           from: ./tmp
           to: 's3://olukotun-demo/prod'

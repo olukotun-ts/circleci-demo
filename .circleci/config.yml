@@ -46,10 +46,6 @@ jobs:
     - attach_workspace:
         at: .
     - run:
-        command: ls -al
-    - run:
-        command: ls -al ./tmp
-    - run:
         command: |
           AWS_VER_REGEXP_2='aws-cli\/2.\d*.\d*'
           AWS_VER_REGEXP_1='aws-cli\/1.\d*.\d*'
@@ -215,8 +211,6 @@ jobs:
     steps:
     - attach_workspace:
         at: .
-    - run:
-        command: ls -al
     - run:
         command: |
           AWS_VER_REGEXP_2='aws-cli\/2.\d*.\d*'
@@ -384,7 +378,10 @@ workflows:
     jobs:
     - lint
     - test
-    - build
+    - build:
+        requires:
+        - lint
+        - test
     - deploy-staging:
         requires:
         - build
