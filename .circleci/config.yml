@@ -38,8 +38,8 @@ jobs:
         name: Save image to filesystem
         command: docker save app:$BUILD_ID > tmp/build/app:${BUILD_ID}.tar
     - persist_to_workspace:
-        root: /tmp
-        paths: build
+        root: .
+        paths: tmp/build
   deploy-staging:
     machine: true
     steps:
