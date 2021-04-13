@@ -78,7 +78,7 @@ jobs:
     steps:
       - checkout
       - set-build-id
-      - run: mkdir tmp/build
+      - run: mkdir -p tmp/build
       - run: 
           name: Build Docker image
           command: docker build -t app:$BUILD_ID .

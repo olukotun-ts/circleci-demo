@@ -30,7 +30,7 @@ jobs:
         paths:
         - BUILD_ID.env
     - run:
-        command: mkdir tmp/build
+        command: mkdir -p tmp/build
     - run:
         name: Build Docker image
         command: docker build -t app:$BUILD_ID .
