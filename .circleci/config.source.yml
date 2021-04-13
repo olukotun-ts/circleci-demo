@@ -94,8 +94,9 @@ jobs:
       - attach_workspace:
           at: .
       - run: ls -al
+      - run: ls -al ./tmp
       - aws-s3/sync:
-          from: build
+          from: ./tmp
           to: 's3://olukotun-demo/staging'
   deploy-prod:
     machine: true
@@ -104,5 +105,5 @@ jobs:
           at: .
       - run: ls -al
       - aws-s3/sync:
-          from: build
+          from: ./tmp
           to: 's3://olukotun-demo/prod'
