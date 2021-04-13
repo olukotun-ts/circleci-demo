@@ -1,0 +1,108 @@
+version: 2.1
+
+orbs:
+  aws-s3: circleci/aws-s3@2.0.0
+ 
+commands:
+  set-build-id:
+    description: "Create and write BUILD_ID to workspace"
+    steps:
+      - run:
+          name: Set BUILD_ID
+          command: |
+            BUILD_TIME=$(date +'%m%d%Y-%H%M%S')
+            BUILD_ID=$(echo "${CIRCLE_PROJECT_REPONAME}-${CIRCLE_BRANCH}-${CIRCLE_SHA1}-${BUILD_TIME}")
+
+            echo "export BUILD_ID=$BUILD_ID" >> $BASH_ENV
+            echo "export CCHOME_BUILD_ID=$BUILD_ID" >> $BASH_ENV
+
+            echo $BUILD_ID > BUILD_ID.env 
+      - run:
+          name: Inspect IDs
+          command: |
+            echo "BUILD_ID: $BUILD_ID"
+            echo "CCHOME_BUILD_ID: $CCHOME_BUILD_ID" 
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - BUILD_ID.env
+  get-build-id:
+    description: "Read BUILD_ID from workspace"
+    steps:
+      - attach_workspace:
+          at: ./
+      - run:
+          name: Get BUILD_ID
+          command: |
+            echo "export BUILD_ID=$(<BUILD_ID.env)" >> $BASH_ENV
+            echo "export CCHOME_BUILD_ID=$(<BUILD_ID.env)" >> $BASH_ENV
+      - run:
+          name: Inspect IDs
+          command: |
+            echo "BUILD_ID: $BUILD_ID"
+            echo "CCHOME_BUILD_ID: $CCHOME_BUILD_ID"
+
+workflows:
+  version: 2.1
+  build-deploy-promote:
+    jobs:
+      - lint
+      - test
+      - build
+      - deploy-staging:
+          requires:
+            - build
+      - approve-prod:
+          requires:
+            - deploy-staging
+          type: approval
+      - deploy-prod:
+          requires:
+            - approve-prod
+            
+jobs:
+  lint:
+    machine: true
+    steps:
+      - checkout
+  test:
+    machine: true
+    parallelism: 4  # Speed up tests by running in parallel.
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm test
+  build:
+    machine: true  # CircleCI supports Docker as well as Linux and Windows VMs.
+    resource_class: large  # Flexible resources can be optimized for cost and performance.
+    steps:
+      - checkout
+      - set-build-id
+      - run: mkdir tmp/build
+      - run: 
+          name: Build Docker image
+          command: docker build -t app:$BUILD_ID .
+      - run:
+          name: Save image to filesystem
+          command: docker save app:$BUILD_ID > tmp/build/app:${BUILD_ID}.tar
+      - persist_to_workspace:
+          root: /tmp
+          paths: build
+  deploy-staging:
+    machine: true
+    steps:
+      - attach_workspace:
+          at: .
+      - run: ls -al
+      - aws-s3/sync:
+          from: build
+          to: 's3://olukotun-demo/staging'
+  deploy-prod:
+    machine: true
+    steps:
+      - attach_workspace:
+          at: .
+      - run: ls -al
+      - aws-s3/sync:
+          from: build
+          to: 's3://olukotun-demo/prod'
