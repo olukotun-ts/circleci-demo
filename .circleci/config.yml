@@ -48,6 +48,8 @@ jobs:
     - run:
         command: ls -al
     - run:
+        command: ls -al ./tmp
+    - run:
         command: |
           AWS_VER_REGEXP_2='aws-cli\/2.\d*.\d*'
           AWS_VER_REGEXP_1='aws-cli\/1.\d*.\d*'
@@ -206,7 +208,7 @@ jobs:
             --profile default
         name: Configure AWS default region
     - deploy:
-        command: "aws s3 sync \\\n  build s3://olukotun-demo/staging \n"
+        command: "aws s3 sync \\\n  ./tmp s3://olukotun-demo/staging \n"
         name: S3 Sync
   deploy-prod:
     machine: true
@@ -374,7 +376,7 @@ jobs:
             --profile default
         name: Configure AWS default region
     - deploy:
-        command: "aws s3 sync \\\n  build s3://olukotun-demo/prod \n"
+        command: "aws s3 sync \\\n  ./tmp s3://olukotun-demo/prod \n"
         name: S3 Sync
 workflows:
   version: 2
