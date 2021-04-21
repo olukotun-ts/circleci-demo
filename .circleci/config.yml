@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:   # Orbs enable templating and config sharing across similar use cases
   node: circleci/node@4.2.0
-  vault: jmingtan/hashicorp-vault@0.2.0
 
 workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
@@ -22,37 +21,7 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
           requires:
             - promote-to-prod
 
-  vault_poc:
-    jobs:
-      - vault-poc
-
 jobs:  # Collection of commands needed to accomplish a specific task
-  vault-poc:
-    machine: true
-    resource_class: sandboxi/runner
-    environment:
-      VAULT_ADDR: http://127.0.0.1:8200
-      VAULT_TOKEN: s.5YVt6UbAiOGcrOGnn2GTXQoQ
-      UNSEAL_KEY: zwVsfSH2mao0h+QFooq8pMTdSoRmez9KaUbg1mH4fJg=
-    steps:
-      # - run:
-      #     name: Install dependencies
-      #     command: |
-      #       sudo apt-get update -y
-      #       sudo apt-get install -y jq unzip
-      # - vault/install
-      # - run: 
-      #     name: Start dev server; verify status
-      #     command: vault server -dev & vault status
-      - run:
-          name: Verify status of Vault server
-          command: vault status
-      - run:
-          name: Write secrets
-          command: vault kv put adobe/demo presenter=Sam topic=VaultPOC
-      - run:
-          name: Read secrets
-          command: vault kv get adobe/demo
   build:
     docker:  # CircleCI supports Docker, Linux, Windows, and macOS
       - image: cimg/node:15.11.0  # Convenience images optimized for performance
