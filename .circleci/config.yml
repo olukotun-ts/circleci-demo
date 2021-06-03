@@ -22,7 +22,7 @@ workflows:
 jobs:
   automatic_workflow_job:
     docker:
-      - image: cimg/base:latest
+      - image: cimg/base:edge
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
@@ -30,7 +30,7 @@ jobs:
       - run: echo "Job triggered automatically"
   manual_workflow_job:
     docker:
-      - image: cimg/base:latest
+      - image: cimg/base:edge
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
@@ -38,7 +38,7 @@ jobs:
       - run: echo "Job triggered manually"
   pull_request_job:
     docker:
-      - image: cimg/base:latest
+      - image: cimg/base:edge
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
