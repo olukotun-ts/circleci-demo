@@ -17,18 +17,30 @@ workflows:
   pull_request_workflow:
     when: $CIRCLE_PULL_REQUEST
     jobs:
-        - pull_request_job
+      - pull_request_job
 
 jobs:
   automatic_workflow_job:
-    docker: cimg/base:latest
+    docker:
+      - image: cimg/base:latest
+        auth:
+          username: DOCKER_USER
+          password: DOCKER_PASS
     steps:
       - run: echo "Job triggered automatically"
   manual_workflow_job:
-    docker: cimg/base:latest
+    docker:
+      - image: cimg/base:latest
+        auth:
+          username: DOCKER_USER
+          password: DOCKER_PASS
     steps:
       - run: echo "Job triggered manually"
   pull_request_job:
-    docker: cimg/base:latest
+    docker:
+      - image: cimg/base:latest
+        auth:
+          username: DOCKER_USER
+          password: DOCKER_PASS
     steps:
       - run: echo "Job triggered by commit on open PR $CIRCLE_PULL_REQUEST"
