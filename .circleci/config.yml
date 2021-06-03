@@ -16,7 +16,7 @@ workflows:
       - manual_workflow_job
   pull_request_workflow:
     when: $CIRCLE_PULL_REQUEST
-      jobs:
+    jobs:
         - pull_request_job
 
 jobs:
