@@ -14,10 +14,6 @@ workflows:
     when: << pipeline.parameters.is_manual >>
     jobs:
       - manual_workflow_job
-  pull_request_workflow:
-    when: $CIRCLE_PULL_REQUEST
-    jobs:
-      - pull_request_job
 
 jobs:
   automatic_workflow_job:
@@ -36,11 +32,3 @@ jobs:
           password: $DOCKER_PASS
     steps:
       - run: echo "Job triggered manually"
-  pull_request_job:
-    docker:
-      - image: cimg/base:edge
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
-    steps:
-      - run: echo "Job triggered by commit on open PR $CIRCLE_PULL_REQUEST"
