@@ -9,11 +9,15 @@ workflows:
   automatic_trigger_workflow:
     unless: << pipeline.parameters.is_manual >>
     jobs:
-      - automatic_workflow_job
+      - check_for_pr
+      - automatic_workflow_job:
+          requires:
+            - check_for_pr
   manual_trigger_workflow:
     when: << pipeline.parameters.is_manual >>
     jobs:
       - manual_workflow_job
+
 
 jobs:
   automatic_workflow_job:
@@ -32,3 +36,13 @@ jobs:
           password: $DOCKER_PASS
     steps:
       - run: echo "Job triggered manually"
+  check_for_pr:
+    docker:
+      - image: cimg/base:edge
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+    steps:
+      when:
+        condition: $CIRCLE_PULL_REQUEST
+      - run: echo "Job triggered for pull request... $CIRCLE_PULL_REQUEST"
