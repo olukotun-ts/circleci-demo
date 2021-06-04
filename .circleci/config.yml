@@ -44,11 +44,12 @@ jobs:
     steps:
       - run:
           command: |
-            echo PR $CIRCLE_PULL_REQUEST
             if [[ "$CIRCLE_PULL_REQUEST" ]]
             then
-              echo "non-empty string"
+              echo "Commit for open PR: $CIRCLE_PULL_REQUEST"
+              echo "Continuing with PR workflow..."
             else
-              echo "empty string"
+              echo "Commit for non-PR branch"
+              echo "Cancelling workflow..."
               curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel
             fi
