@@ -46,8 +46,8 @@ jobs:
       - run: echo "varlength ${#CIRCLE_PULL_REQUEST}"
       - run:
           command: |
-            echo $CIRCLE_PULL_REQUEST
-            if [ -n $CIRCLE_PULL_REQUEST ]
+            echo PR $CIRCLE_PULL_REQUEST
+            if [[ "$CIRCLE_PULL_REQUEST" ]]
             then
               echo "non-empty string"
             else
