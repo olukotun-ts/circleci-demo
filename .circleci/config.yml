@@ -46,10 +46,11 @@ jobs:
       - run: echo "varlength ${#CIRCLE_PULL_REQUEST}"
       - run:
           command: |
+            echo $CIRCLE_PULL_REQUEST
             if [ -n $CIRCLE_PULL_REQUEST ]
             then
-              echo true bloc
+              echo "non-empty string"
             else
-              echo false bloc
+              echo "empty string"
               curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel
             fi
