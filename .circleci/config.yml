@@ -18,7 +18,6 @@ workflows:
     jobs:
       - manual_workflow_job
 
-
 jobs:
   automatic_workflow_job:
     docker:
