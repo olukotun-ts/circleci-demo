@@ -46,3 +46,4 @@ jobs:
           condition: $CIRCLE_PULL_REQUEST
           steps:
             - run: echo "Job triggered for pull request... $CIRCLE_PULL_REQUEST"
+            - run: echo "varlength ${#CIRCLE_PULL_REQUEST}"
