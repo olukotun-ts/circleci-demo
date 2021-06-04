@@ -42,8 +42,6 @@ jobs:
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
-      - run: echo "Job triggered for pull request... $CIRCLE_PULL_REQUEST"
-      - run: echo "varlength ${#CIRCLE_PULL_REQUEST}"
       - run:
           command: |
             echo PR $CIRCLE_PULL_REQUEST
