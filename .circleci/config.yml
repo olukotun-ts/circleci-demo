@@ -43,6 +43,7 @@ jobs:
           password: $DOCKER_PASS
     steps:
       - run:
+          name: Check if commit for open PR
           command: |
             if [[ "$CIRCLE_PULL_REQUEST" ]]
             then
