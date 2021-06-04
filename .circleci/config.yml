@@ -42,8 +42,13 @@ jobs:
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
-      - when:
-          condition: ${#CIRCLE_PULL_REQUEST}
-          steps:
-            - run: echo "Job triggered for pull request... $CIRCLE_PULL_REQUEST"
-            - run: echo "varlength ${#CIRCLE_PULL_REQUEST}"
+      - run: echo "Job triggered for pull request... $CIRCLE_PULL_REQUEST"
+      - run: echo "varlength ${#CIRCLE_PULL_REQUEST}"
+      - run:
+          command: |
+            if [ -n ${#CIRCLE_PULL_REQUEST} ]
+            then
+              :
+            else
+              curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel
+            fi
