@@ -45,4 +45,5 @@ jobs:
     steps:
       when:
         condition: $CIRCLE_PULL_REQUEST
-      - run: echo "Job triggered for pull request... $CIRCLE_PULL_REQUEST"
+        steps:
+          - run: echo "Job triggered for pull request... $CIRCLE_PULL_REQUEST"
