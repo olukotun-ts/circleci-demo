@@ -46,7 +46,7 @@ jobs:
       - run: echo "varlength ${#CIRCLE_PULL_REQUEST}"
       - run:
           command: |
-            if [ -n ${#CIRCLE_PULL_REQUEST} ]
+            if [ -n $CIRCLE_PULL_REQUEST ]
             then
               :
             else
