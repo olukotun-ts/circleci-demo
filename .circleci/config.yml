@@ -9,20 +9,19 @@ workflows:
   automatic_trigger_workflow:
     unless: << pipeline.parameters.is_manual >>
     jobs:
-      - automatic_workflow_job
+      - check_for_pr
+      - automatic_workflow_job:
+          requires:
+            - check_for_pr
   manual_trigger_workflow:
     when: << pipeline.parameters.is_manual >>
     jobs:
       - manual_workflow_job
-  pull_request_workflow:
-    when: $CIRCLE_PULL_REQUEST
-    jobs:
-      - pull_request_job
 
 jobs:
   automatic_workflow_job:
     docker:
-      - image: cimg/base:edge
+      - image: cimg/node:16.3.0
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
@@ -30,17 +29,27 @@ jobs:
       - run: echo "Job triggered automatically"
   manual_workflow_job:
     docker:
-      - image: cimg/base:edge
+      - image: cimg/node:16.3.0
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
       - run: echo "Job triggered manually"
-  pull_request_job:
+  check_for_pr:
     docker:
-      - image: cimg/base:edge
+      - image: cimg/node:16.3.0
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
-      - run: echo "Job triggered by commit on open PR $CIRCLE_PULL_REQUEST"
+      - run:
+          command: |
+            if [[ "$CIRCLE_PULL_REQUEST" ]]
+            then
+              echo "Commit for open PR: $CIRCLE_PULL_REQUEST"
+              echo "Continuing with PR workflow..."
+            else
+              echo "Commit for non-PR branch"
+              echo "Cancelling workflow..."
+              curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel
+            fi
