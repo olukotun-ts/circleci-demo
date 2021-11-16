@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  kubernetes: circleci/kubernetes@0.12.0
+  
 workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
   poc:
@@ -14,6 +17,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
+      - kubernetes/install
       - run:
           name: Create minimal kubeconfig for Service Account
           command: |
