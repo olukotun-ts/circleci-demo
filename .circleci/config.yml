@@ -1,127 +1,26 @@
 version: 2.1
 
-orbs:   # Orbs enable templating and config sharing across similar use cases
-  node: circleci/node@4.2.0
-
 workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
-  build_test_and_deploy:
+  poc:
     jobs:
-      - test
-      - build
-      - deploy-staging:
-          requires:
-            - test
-            - build
-      - promote-to-prod:
-          type: approval
-          requires:
-            - deploy-staging
-      - deploy-prod:
-          requires:
-            - promote-to-prod
+      - kubectl-poc
 
 jobs:  # Collection of commands needed to accomplish a specific task
-  build:
-    docker:  # CircleCI supports Docker, Linux, Windows, and macOS
-      - image: cimg/node:15.11.0  # Convenience images optimized for performance
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
-    resource_class: xlarge  # Options range from small to 2xlarge+
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true  # Caching of unchanged Docker layers improves build speeds
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run: 
-          name: Build Docker image
-          command: docker build -t olukotunts/app:$CIRCLE_SHA1 .
-      - run:
-          name: Push Docker image to Docker Hub
-          command: docker push olukotunts/app:$CIRCLE_SHA1
-  test:
-    parameters:   # Parameterized jobs enable dynamic invocations
-      parallelism:
-        description: "Number of parallel nodes to provision"
-        default: 2
-        type: integer
-      resource_class:
-        description: "Size of compute resource"
-        default: "xlarge"
-        type: string 
-    docker:
-      - image: cimg/node:15.11.0
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
-    resource_class: << parameters.resource_class >>
-    parallelism: << parameters.parallelism >>
-    steps:
-      - checkout
-      - run: echo Running with << parameters.parallelism >> nodes
-      - run: echo Running with << parameters.resource_class >> resource class
-      - node/install-packages   # Orbs encapsulate complex logic and expose clean interfaces
-      - run: npm test
-  deploy-staging:
+  kubectl-poc:
     docker:
       - image: cimg/node:15.11.0
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
-      - checkout
-      - setup_remote_docker
       - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run:
-          name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
-      - run:
-          name: Install Heroku CLI
-          command: curl https://cli-assets.heroku.com/install.sh | sh
-      - run:
-          name: Log in to Heroku Container Registry
-          command: heroku container:login
-      - run:
-          name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button-staging/web
-      - run:
-          name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button-staging/web
-      - run:
-          name: Deploy Docker image to Heroku
-          command: heroku container:release --app name-button-staging web
-  deploy-prod:
-    docker:
-      - image: cimg/node:15.11.0
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Log in to Docker Hub
-          command: echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-      - run:
-          name: Pull Docker image from Docker Hub
-          command: docker pull olukotunts/app:$CIRCLE_SHA1
-      - run:
-          name: Install Heroku CLI
-          command: curl https://cli-assets.heroku.com/install.sh | sh
-      - run:
-          name: Log in to Heroku Container Registry
-          command: heroku container:login
-      - run:
-          name: Tag Docker image
-          command: docker tag olukotunts/app:$CIRCLE_SHA1 registry.heroku.com/name-button/web
-      - run:
-          name: Push Docker image to Heroku
-          command: docker push registry.heroku.com/name-button/web
-      - run:
-          name: Deploy Docker image to Heroku
-          command: heroku container:release --app name-button web
+          name: Create minimal kubeconfig for Service Account
+          command: |
+            export DECODED_TOKEN=$(echo ${GKE_SERVICE_ACCOUNT_TOKEN} | base64 -d)
+            echo $CERTIFICATE_AUTHORITY_DATA | base64 -d > ca.crt
+            kubectl config set-cluster $CLUSTER_NAME --server=$SERVER_IP --certificate-authority=ca.crt
+            kubectl config set-credentials $CLUSTER_USER --token=${DECODED_TOKEN}
+            kubectl config set-context circleci --user=$CLUSTER_USER --namespace=default --cluster=$CLUSTER_NAME
+            kubectl config use-context circleci
+      - run: kubectl get pods
