@@ -17,7 +17,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
-      - kubernetes/install
+      - kubernetes/install-kubectl
       - run:
           name: Create minimal kubeconfig for Service Account
           command: |
