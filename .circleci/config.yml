@@ -11,7 +11,7 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
     jobs:
       - add-context
       - continuation/continue:
-          configuration_path: ./continue-config.yml
+          configuration_path: .circleci/continue-config.yml
           requires:
             - add-context
 
