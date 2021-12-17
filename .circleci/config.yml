@@ -25,5 +25,6 @@ jobs:  # Collection of commands needed to accomplish a specific task
           name: Add context to do-deploy job
           command: |
             # Todo: Check if CIRCLE_BRANCH == "master" && CIRCLE_JOB == "do-deploy"
+            brew install yq
             yq eval --inplace '.workflows.build-test-deploy.jobs[0].context[0] = strenv($MASTER_CONTEXT)' .circleci/continue-config.yml
   
