@@ -5,7 +5,9 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
   build-test-deploy:
     jobs:
       - do:
-          matrix: ["build", "test", "deploy"]
+          matrix:
+            parameters:
+              names: ["build", "test", "deploy"]
 
 jobs:  # Collection of commands needed to accomplish a specific task
   do:
