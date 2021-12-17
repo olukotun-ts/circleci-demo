@@ -1,30 +1,22 @@
 version: 2.1
-
-orbs:
-  kubernetes: circleci/kubernetes@0.12.0
   
 workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
-  poc:
+  build-test-deploy:
     jobs:
-      - kubectl-poc
+      - do:
+          matrix: ["build", "test", "deploy"]
 
 jobs:  # Collection of commands needed to accomplish a specific task
-  kubectl-poc:
+  do:
     docker:
       - image: cimg/node:15.11.0
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
-      - kubernetes/install-kubectl
       - run:
-          name: Create minimal kubeconfig for Service Account
+          name: Check environment
           command: |
-            export DECODED_TOKEN=$(echo ${GKE_SERVICE_ACCOUNT_TOKEN} | base64 -d)
-            echo $CERTIFICATE_AUTHORITY_DATA | base64 -d > ca.crt
-            kubectl config set-cluster $CLUSTER_NAME --server=$SERVER_IP --certificate-authority=ca.crt
-            kubectl config set-credentials $CLUSTER_USER --token=${DECODED_TOKEN}
-            kubectl config set-context circleci --user=$CLUSTER_USER --namespace=default --cluster=$CLUSTER_NAME
-            kubectl config use-context circleci
-      - run: kubectl get pods
+            echo $CIRCLE_OIDC_TOKEN > oidc-token
+            cat oidc-token
