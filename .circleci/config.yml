@@ -8,8 +8,7 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
           matrix:
             parameters:
               names: ["build", "test", "deploy"]
-          contexts:
-            - cloudSecrets
+          context: cloudSecrets
 
 jobs:  # Collection of commands needed to accomplish a specific task
   do:
