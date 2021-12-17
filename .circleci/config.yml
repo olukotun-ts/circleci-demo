@@ -21,6 +21,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
           username: $DOCKER_USER
           password: $DOCKER_PASS
     steps:
+      - checkout
       - run:
           name: Add context to do-deploy job
           command: |

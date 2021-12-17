@@ -22,6 +22,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
         type: string
         default: ""
     steps:
+      - checkout
       - run:
           name: Check environment
           command: |
