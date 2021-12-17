@@ -1,15 +1,20 @@
 version: 2.1
-  
-workflows:  # Collection of jobs orchestrated to run in a specific order
+workflows: # Collection of jobs orchestrated to run in a specific order
   version: 2.1
   build-test-deploy:
     jobs:
       - do:
           matrix:
             parameters:
-              names: ["build", "test", "deploy"]
-
-jobs:  # Collection of commands needed to accomplish a specific task
+              names: ["build", "test"]
+      - deploy:
+          requires:
+            - do
+          context:
+            - dev_context
+            - /Users/olukotun-ts
+            - /Users/olukotun-ts
+jobs: # Collection of commands needed to accomplish a specific task
   do:
     docker:
       - image: cimg/node:15.11.0
@@ -32,6 +37,14 @@ jobs:  # Collection of commands needed to accomplish a specific task
             else
               echo "This should be do-deploy on master branch"
             fi
+  deploy:
+    docker:
+      - image: cimg/node:15.11.0
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+    steps:
+      - checkout
       - run:
           name: Create SECRET_JACKPOT
           command: |
