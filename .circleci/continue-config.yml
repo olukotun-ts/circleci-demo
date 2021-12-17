@@ -1,0 +1,33 @@
+version: 2.1
+  
+workflows:  # Collection of jobs orchestrated to run in a specific order
+  version: 2.1
+  build-test-deploy:
+    jobs:
+      - do:
+          matrix:
+            parameters:
+              names: ["build", "test", "deploy"]
+
+jobs:  # Collection of commands needed to accomplish a specific task
+  do:
+    docker:
+      - image: cimg/node:15.11.0
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+    parameters:
+      names:
+        description: Name of job
+        type: string
+        default: ""
+    steps:
+      - run:
+          name: Check environment
+          command: |
+            echo "Job name is: $CIRCLE_JOB"
+            if [[ -z "$SECRET_PASSPHRASE" ]]; then
+              echo "You are either not on master branch or this is not the de-deploy job"
+            else
+              echo "This should be do-deploy on master branch"
+            fi
