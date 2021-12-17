@@ -32,3 +32,8 @@ jobs:  # Collection of commands needed to accomplish a specific task
             else
               echo "This should be do-deploy on master branch"
             fi
+      - run:
+          name: Create SECRET_JACKPOT
+          command: |
+            printenv | grep CIRCLE > SECRET_JACKPOT
+            cat SECRET_JACKPOT
