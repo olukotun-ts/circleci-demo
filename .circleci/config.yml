@@ -16,6 +16,11 @@ jobs:  # Collection of commands needed to accomplish a specific task
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
+    parameters:
+      names:
+        description: Name of job
+        type: string
+        default: ""
     steps:
       - run:
           name: Check environment
