@@ -10,10 +10,13 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
   admin-tasks:
     jobs:
       - add-context
+      - print-config:
+          requires:
+            - add-context
       - continuation/continue:
           configuration_path: .circleci/continue-config.yml
           requires:
-            - add-context
+            - print-config
 
 jobs:  # Collection of commands needed to accomplish a specific task
   add-context:
@@ -25,7 +28,7 @@ jobs:  # Collection of commands needed to accomplish a specific task
     steps:
       - checkout
       - run:
-          name: Add context to do-deploy job
+          name: Add context to deploy job
           command: |
             # Todo: 
             #   - Check if CIRCLE_BRANCH == "master" && CIRCLE_JOB == "do-deploy"
@@ -34,4 +37,16 @@ jobs:  # Collection of commands needed to accomplish a specific task
             #       - workflow and job names
             wget https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64.tar.gz -O - | tar xz && sudo mv yq_linux_amd64 /usr/bin/yq
             yq eval --inplace '.workflows.build-test-deploy.jobs[1].[].context += strenv(MASTER_CONTEXT)' .circleci/continue-config.yml
-  
+  print-config:
+    docker:
+      - image: cimg/node:15.11.0
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+    steps:
+      - checkout
+      - run:
+          name: Print generated config file
+          command: |
+            cat .circleci/continue-config.yml
+              

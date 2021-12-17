@@ -12,7 +12,7 @@ workflows: # Collection of jobs orchestrated to run in a specific order
             - do
           context:
             - dev_context
-            
+
 jobs: # Collection of commands needed to accomplish a specific task
   do:
     docker:
