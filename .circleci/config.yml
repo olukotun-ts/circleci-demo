@@ -27,6 +27,6 @@ jobs:  # Collection of commands needed to accomplish a specific task
             # Todo: 
             #   - Check if CIRCLE_BRANCH == "master" && CIRCLE_JOB == "do-deploy"
             #   - Add yq version and binary params for wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY}.tar.gz -O - | tar xz && mv ${BINARY} /usr/bin/yq
-            wget https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
+            wget https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64.tar.gz -O - | tar xz && sudo mv yq_linux_amd64 /usr/bin/yq
             yq eval --inplace '.workflows.build-test-deploy.jobs[0].context[0] = strenv($MASTER_CONTEXT)' .circleci/continue-config.yml
   
