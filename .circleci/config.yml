@@ -4,27 +4,17 @@ workflows:  # Collection of jobs orchestrated to run in a specific order
   version: 2.1
   build-test-deploy:
     jobs:
-      - do:
-          matrix:
-            parameters:
-              names: ["build", "test", "deploy"]
-          context: cloudSecrets
+      - do
 
 jobs:  # Collection of commands needed to accomplish a specific task
   do:
     docker:
-      - image: cimg/node:15.11.0
+      - image: cimg/python:3.8
         auth:
           username: $DOCKER_USER
           password: $DOCKER_PASS
-    parameters:
-      names:
-        description: Name of job
-        type: string
-        default: ""
     steps:
+      - checkout
       - run:
-          name: Check environment
-          command: |
-            echo $CIRCLE_OIDC_TOKEN > oidc-token
-            cat oidc-token
+          name: Custom checkout
+          command: python3 .circleci/checkout.py
