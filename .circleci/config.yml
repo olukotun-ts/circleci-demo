@@ -16,5 +16,12 @@ jobs:  # Collection of commands needed to accomplish a specific task
     steps:
       - checkout
       - run:
-          name: Custom checkout
-          command: python3 .circleci/checkout.py
+          name: Install git-lfs
+          command: |
+            sudo curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+            sudo apt-get install git-lfs
+            git lfs install
+            git lfs ls-files
+            git lfs track ".circleci/**"
+            git lfs ls-files
+            
