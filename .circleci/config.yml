@@ -1,30 +1,35 @@
 version: 2.1
-  
-workflows:  # Collection of jobs orchestrated to run in a specific order
-  version: 2.1
-  build-test-deploy:
-    jobs:
-      - do:
-          matrix:
-            parameters:
-              names: ["build", "test", "deploy"]
-          context: cloudSecrets
 
-jobs:  # Collection of commands needed to accomplish a specific task
-  do:
+jobs:
+  oidc-aws:
     docker:
-      - image: cimg/node:15.11.0
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
-    parameters:
-      names:
-        description: Name of job
-        type: string
-        default: ""
+      - image: amazon/aws-cli
+    environment:
+      AWS_DEFAULT_REGION: us-west-1
+      AWS_ROLE_ARN: arn:aws:iam::906212366989:role/oidc-s3
     steps:
       - run:
-          name: Check environment
+          name: authenticate-and-interact
           command: |
-            echo $CIRCLE_OIDC_TOKEN > oidc-token
-            cat oidc-token
+            # use the OpenID Connect token to obtain AWS credentials
+            read -r AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN \<<< \
+              $(aws sts assume-role-with-web-identity \
+              --role-arn ${AWS_ROLE_ARN} \
+              --role-session-name "CircleCI-${CIRCLE_WORKFLOW_ID}-${CIRCLE_JOB}" \
+              --web-identity-token $CIRCLE_OIDC_TOKEN \
+              --duration-seconds 3600 \
+              --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' \
+              --output text)
+            export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
+
+            # interact with AWS
+            aws sts get-caller-identity
+            aws s3 ls
+    
+workflows:
+  version: 2
+  oidc_poc:
+    jobs:
+      - oidc-aws:
+          context: 
+            - cloudSecrets
