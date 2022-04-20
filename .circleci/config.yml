@@ -41,7 +41,8 @@ jobs:
           name: Authenticate with GCP
           command: |
             curl -0 -X POST https://sts.googleapis.com/v1/token \
-              -H 'Content-Type: text/json' \
+              -H "Accept: application/json" \
+              -H "Content-Type: application/json" \
               -d '{
                 "audience" : "//iam.googleapis.com/projects/193436206874/locations/global/workloadIdentityPools/oidc-poc/providers/circleci",
                 "grantType" : "urn:ietf:params:oauth:grant-type:token-exchange",
