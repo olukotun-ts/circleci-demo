@@ -43,7 +43,7 @@ jobs:
             curl -0 -X POST https://sts.googleapis.com/v1/token \
               -H 'Content-Type: text/json' \
               -d '{
-                "audience" : "//iam.googleapis.com/projects/193436206874/locations/global/workloadIdentityPools/oidc_poc/providers/circleci",
+                "audience" : "//iam.googleapis.com/projects/193436206874/locations/global/workloadIdentityPools/oidc-poc/providers/circleci",
                 "grantType" : "urn:ietf:params:oauth:grant-type:token-exchange",
                 "requestedTokenType" : "urn:ietf:params:oauth:token-type:access_token",
                 "scope" : "https://www.googleapis.com/auth/cloud-platform",
