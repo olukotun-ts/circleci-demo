@@ -35,8 +35,8 @@ jobs:
       AWS_DEFAULT_REGION: us-west-1
       AWS_ROLE_ARN: arn:aws:iam::906212366989:role/oidc-s3
     steps:
-      - gcp-cli/install:
-          version: "372.0.0"
+      # - gcp-cli/install:
+      #     version: "372.0.0"
       - run:
           name: Authenticate with GCP
           command: |
