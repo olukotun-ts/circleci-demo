@@ -55,5 +55,5 @@ workflows:
           context: 
             - cloudSecrets
       - oidc-gcp:
-          # context: 
-          #   - cloudSecrets
+          context: 
+            - cloudSecrets
