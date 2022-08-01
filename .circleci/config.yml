@@ -1,23 +1,32 @@
 version: 2.1
 
+orbs:
+  win: circleci/windows@5.0 
+
 parameters:
   is_manual:
     type: boolean
     default: false
 
 workflows:
-  automatic_trigger_workflow:
-    unless: << pipeline.parameters.is_manual >>
-    jobs:
-      - check_for_pr
-      - automatic_workflow_job:
-          requires:
-            - check_for_pr
-  manual_trigger_workflow:
-    when: << pipeline.parameters.is_manual >>
-    jobs:
-      - manual_workflow_job
-
+  # automatic_trigger_workflow:
+  #   unless: << pipeline.parameters.is_manual >>
+  #   jobs:
+  #     - check_for_pr
+  #     - automatic_workflow_job:
+  #         requires:
+  #           - check_for_pr
+  # manual_trigger_workflow:
+  #   when: << pipeline.parameters.is_manual >>
+  #   jobs:
+  #     - manual_workflow_job
+  xunit-poc:
+    matrix:
+      parameters:
+        command:
+          - xunit.runner.console\2.4.1\tools\net462\xunit.console.exe
+          - ~\.nuget\packages\xunit.runner.console\2.4.1\tools\net462\xunit.console.exe
+        
 jobs:
   automatic_workflow_job:
     docker:
@@ -45,3 +54,21 @@ jobs:
               echo "Cancelling workflow..."
               curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel
             fi
+  xunit-poc:
+    executor:
+      name: win/server-2019 # executor type
+      size: "medium" # resource class, can be "medium", "large", "xlarge", "2xlarge", defaults to "medium" if not specified
+    parameters:
+      command:
+        type: string
+    steps:
+      # Commands are run in a Windows virtual machine environment
+      - checkout
+      - run: nuget sources
+      - run: nuget restore
+      - run: msbuild.exe /m /nr:false
+      - run: find / -name xunit.console.exe
+      - run:
+          command: << parameters.command >>
+          shell: cmd.exe
+
