@@ -20,13 +20,15 @@ workflows:
   #   when: << pipeline.parameters.is_manual >>
   #   jobs:
   #     - manual_workflow_job
-  xunit-poc:
-    matrix:
-      parameters:
-        command:
-          - xunit.runner.console\2.4.1\tools\net462\xunit.console.exe
-          - ~\.nuget\packages\xunit.runner.console\2.4.1\tools\net462\xunit.console.exe
-        
+  poc:
+    jobs:
+      - xunit-poc:
+          matrix:
+            parameters:
+              command:
+                - xunit.runner.console\2.4.1\tools\net462\xunit.console.exe
+                - ~\.nuget\packages\xunit.runner.console\2.4.1\tools\net462\xunit.console.exe
+            
 jobs:
   automatic_workflow_job:
     docker:
