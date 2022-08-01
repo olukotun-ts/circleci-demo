@@ -22,13 +22,8 @@ workflows:
   #     - manual_workflow_job
   poc:
     jobs:
-      - xunit-poc:
-          matrix:
-            parameters:
-              command:
-                - xunit.runner.console\2.4.1\tools\net462\xunit.console.exe
-                - ~\.nuget\packages\xunit.runner.console\2.4.1\tools\net462\xunit.console.exe
-            
+      - env-var-poc
+           
 jobs:
   automatic_workflow_job:
     docker:
@@ -56,21 +51,14 @@ jobs:
               echo "Cancelling workflow..."
               curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel
             fi
-  xunit-poc:
+  env-var-poc:
     executor:
       name: win/server-2019 # executor type
       size: "medium" # resource class, can be "medium", "large", "xlarge", "2xlarge", defaults to "medium" if not specified
-    parameters:
-      command:
-        type: string
     steps:
       # Commands are run in a Windows virtual machine environment
       - checkout
-      - run: nuget sources
-      - run: nuget restore
-      - run: msbuild.exe /m /nr:false
-      - run: find / -name xunit.console.exe
-      - run:
-          command: << parameters.command >>
-          shell: cmd.exe
-
+      - run: |
+          files=$(ls -al .)
+          echo $files >> $BASH_ENV
+      - run: echo $files
