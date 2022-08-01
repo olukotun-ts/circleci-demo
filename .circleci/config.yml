@@ -59,6 +59,6 @@ jobs:
       # Commands are run in a Windows virtual machine environment
       - checkout
       - run: |
-          files=$(ls -al .)
-          echo $files >> $BASH_ENV
+          files = Get-ChildItem -Path C:\
+          $files | Out-File -Append $BASH_ENV
       - run: echo $files
