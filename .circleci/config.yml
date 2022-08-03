@@ -22,7 +22,13 @@ workflows:
   #     - manual_workflow_job
   poc:
     jobs:
-      - env-var-poc
+      - shell-params-poc:
+          matrix:
+            parameters:
+              shell:
+                - bash
+                - bash -u
+                - ''
            
 jobs:
   automatic_workflow_job:
@@ -51,14 +57,13 @@ jobs:
               echo "Cancelling workflow..."
               curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel
             fi
-  env-var-poc:
-    executor:
-      name: win/server-2019 # executor type
-      size: "medium" # resource class, can be "medium", "large", "xlarge", "2xlarge", defaults to "medium" if not specified
+  shell-params-poc:
+    parameters:
+      shell:
+        type: string
+    docker:
+      - image: cimg/base:stable
     steps:
-      # Commands are run in a Windows virtual machine environment
-      - checkout
-      - run: |
-          $files = Get-ChildItem -Path C:\
-          $files | Out-File -Append $BASH_ENV
-      - run: echo $files
+      - run:
+          command: echo $undef && echo 1
+          shell: << parameters.shell >>
