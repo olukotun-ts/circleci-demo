@@ -23,8 +23,18 @@ workflows:
   #     - manual_workflow_job
   poc:
     jobs:
-      - orbs-on-windows-executor
-      - orbs-on-windows-step
+      - orbs-on-windows-executor:
+          matrix:
+            parameters:
+              executor:
+                - win/default
+                - win/server-2019
+                - win/server-2019-cuda
+                - win/server-2022
+      - orbs-on-windows-executor:
+          matrix:
+            parameters:
+              executor: [win/default, win/server-2019]
 
 jobs:
   automatic_workflow_job:
@@ -54,14 +64,11 @@ jobs:
               curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel
             fi
   orbs-on-windows-executor:
+    parameters:
+      executor:
+        type: string
     executor:
-      name: win/default
+      name: << parameters.executor >>
       shell: bash
     steps:
       - aws-cli/install
-  orbs-on-windows-step:
-    executor: win/default
-    steps:
-      - run:
-          command: aws-cli/install
-          shell: bash
