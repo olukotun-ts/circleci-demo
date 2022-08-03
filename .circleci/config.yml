@@ -1,6 +1,7 @@
 version: 2.1
 
 orbs:
+  aws-cli: circleci/aws-cli@3.1.1
   win: circleci/windows@5.0 
 
 parameters:
@@ -22,14 +23,8 @@ workflows:
   #     - manual_workflow_job
   poc:
     jobs:
-      - shell-params-poc:
-          matrix:
-            parameters:
-              shell:
-                - bash
-                - bash -u
-                - ''
-           
+      - orbs-on-windows
+
 jobs:
   automatic_workflow_job:
     docker:
@@ -57,13 +52,8 @@ jobs:
               echo "Cancelling workflow..."
               curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel
             fi
-  shell-params-poc:
-    parameters:
-      shell:
-        type: string
-    docker:
-      - image: cimg/base:stable
+  orbs-on-windows:
+    executor: win/default
     steps:
-      - run:
-          command: echo $undef && echo 1
-          shell: << parameters.shell >>
+      - aws-cli/install
+
