@@ -30,3 +30,4 @@ jobs:
     steps:
       - slack/notify:
           debug: true
+          channel: cicd
