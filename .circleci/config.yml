@@ -32,8 +32,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Check sed escape slash
-          command: cat template.json | sed 's/\\\/\\\\\\/g'
+          name: Check sed
+          command: cat template.json | sed "s/\\/\\\\/g"
       - run:
           name: Check sed
           command: cat template.json | sed 's/\\/\\\\/g'
