@@ -7,6 +7,8 @@ orbs:
 workflows:
   poc:
     jobs:
+      - control:
+          context: slack
       - slack/on-hold:
           context: slack
       - orbs-on-windows:
