@@ -16,7 +16,7 @@ workflows:
               executor:
                 - win/default
                 - win/server-2019
-                - win/server-2019-cuda
+                # - win/server-2019-cuda
                 - win/server-2022
 
 jobs:
@@ -28,4 +28,5 @@ jobs:
       name: << parameters.executor >>
       shell: bash
     steps:
-      - slack/notify
+      - slack/notify:
+          debug: true
