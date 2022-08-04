@@ -1,29 +1,16 @@
 version: 2.1
 
 orbs:
-  aws-cli: circleci/aws-cli@3.1.1
+  slack: circleci/slack@4.10.1
   win: circleci/windows@5.0 
 
-parameters:
-  is_manual:
-    type: boolean
-    default: false
-
 workflows:
-  # automatic_trigger_workflow:
-  #   unless: << pipeline.parameters.is_manual >>
-  #   jobs:
-  #     - check_for_pr
-  #     - automatic_workflow_job:
-  #         requires:
-  #           - check_for_pr
-  # manual_trigger_workflow:
-  #   when: << pipeline.parameters.is_manual >>
-  #   jobs:
-  #     - manual_workflow_job
   poc:
     jobs:
-      - orbs-on-windows-executor:
+      - slack/on-hold:
+          context: slack
+      - orbs-on-windows:
+          context: slack
           matrix:
             parameters:
               executor:
@@ -31,39 +18,9 @@ workflows:
                 - win/server-2019
                 - win/server-2019-cuda
                 - win/server-2022
-      - orbs-on-windows-executor:
-          matrix:
-            parameters:
-              executor: [win/default, win/server-2019]
 
 jobs:
-  automatic_workflow_job:
-    docker:
-      - image: cimg/base:stable
-    resource_class: sandboxi/container-agent
-    steps:
-      - run: echo "Job triggered automatically"
-  manual_workflow_job:
-    docker:
-      - image: cimg/base:stable
-    steps:
-      - run: echo "Job triggered manually"
-  check_for_pr:
-    docker:
-      - image: cimg/base:stable
-    steps:
-      - run:
-          command: |
-            if [[ "$CIRCLE_PULL_REQUEST" ]]
-            then
-              echo "Commit for open PR: $CIRCLE_PULL_REQUEST"
-              echo "Continuing with PR workflow..."
-            else
-              echo "Commit for non-PR branch"
-              echo "Cancelling workflow..."
-              curl -u ${CIRCLE_API_TOKEN}: -X POST --header "Content-Type: application/json" https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel
-            fi
-  orbs-on-windows-executor:
+  orbs-on-windows:
     parameters:
       executor:
         type: string
@@ -71,4 +28,4 @@ jobs:
       name: << parameters.executor >>
       shell: bash
     steps:
-      - aws-cli/install
+      - slack/notify
