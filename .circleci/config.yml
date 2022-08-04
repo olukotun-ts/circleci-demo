@@ -32,7 +32,12 @@ jobs:
     steps:
       - run:
           name: Check sed
-          command: cat template.json | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/`/\\`/g' > output.txt
+          command: cat template.json | sed 's/\\/\\\\/g'
+      - run:
+          name: Check sed escape slash
+          command: cat template.json | sed 's/\\\/\\\\\\/g'
+          # name: Check sed full command
+          # command: cat template.json | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/`/\\`/g' > output.txt
       - slack/notify:
           debug: true
           channel: cicd
