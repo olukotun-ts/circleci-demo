@@ -31,3 +31,9 @@ jobs:
       - slack/notify:
           debug: true
           channel: cicd
+  control:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - slack/notify:
+          debug: true
