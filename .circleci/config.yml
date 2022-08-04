@@ -1,52 +1,38 @@
 version: 2.1
 
 orbs:
-  slack: circleci/slack@4.10.1
+  aws-cli: circleci/aws-cli@3.1.1
   win: circleci/windows@5.0 
 
 workflows:
   poc:
     jobs:
-      - control:
-          context: slack
-      - slack/on-hold:
-          context: slack
-      - orbs-on-windows:
-          context: slack
+      - check-executor:
           matrix:
             parameters:
               executor:
                 - win/default
                 - win/server-2019
-                # - win/server-2019-cuda
+                - win/server-2019-cuda
                 - win/server-2022
-
+              command:
+                - which aws
+                - aws -h
+              shell:
+                - bash
+                - ''
+                
 jobs:
-  orbs-on-windows:
+  check-executor:
     parameters:
+      command:
+        type: string
       executor:
+        type: string
+      shell:
         type: string
     executor:
       name: << parameters.executor >>
-      shell: bash
+      shell: << parameters.shell >>
     steps:
-      - checkout
-      - run:
-          name: Check sed
-          command: cat template.json | sed "s/\\/\\\\/g"
-      - run:
-          name: Check sed
-          command: cat template.json | sed 's/\\/\\\\/g'
-          # name: Check sed full command
-          # command: cat template.json | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/`/\\`/g' > output.txt
-      - slack/notify:
-          debug: true
-          channel: cicd
-      - store_artifacts:
-          path: .
-  control:
-    docker:
-      - image: cimg/base:stable
-    steps:
-      - slack/notify:
-          debug: true
+      - run: << parameters.command >>
