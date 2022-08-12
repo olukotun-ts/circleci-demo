@@ -1,27 +1,15 @@
 version: 2.1
 
 orbs:
-  slack: circleci/slack@4.10.1
   win: circleci/windows@5.0 
 
 workflows:
   poc:
     jobs:
-      - control:
-          context: slack
-      - slack/on-hold:
-          context: slack
-      - orbs-on-windows:
-          context: slack
+      - test-multiline:
           matrix:
             parameters:
-              executor:
-                - win/server-2019
-                - win/server-2022
-              shell:
-                - bash
-                - sh
-                - ''
+              shell: [bash, sh, cmd, powershell, '']
 
 jobs:
   orbs-on-windows:
@@ -38,10 +26,10 @@ jobs:
       - run:
           name: Check jq output
           command: cat template.json | jq '@json' > jq_output.txt
-      - slack/notify:
-          debug: true
       - store_artifacts:
           path: .
+      - slack/notify:
+          debug: true
   control:
     docker:
       - image: cimg/base:stable
@@ -50,5 +38,21 @@ jobs:
       - run:
           name: Check jq output
           command: cat template.json | jq '@json' > jq_output.txt
+      - store_artifacts:
+          path: .
       - slack/notify:
           debug: true
+  test-multiline:
+    executor: win/default
+    parameters:
+      shell:
+        type: string
+    steps:
+      - checkout 
+      - run:
+          name: Check multiline command
+          command: |
+            echo "line 1"
+            echo
+            echo "line 3"
+          shell: << parameters.shell >>
